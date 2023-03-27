@@ -1,22 +1,16 @@
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from './page.module.css'
-import Sidebar from '../../components/sideBar.js'
-import TempContent from '../../components/tempContent.js'
-import React from 'react';
-import Link from 'next/link';
-import Head from 'next/head'
+import Sidebar from '../../components/sideBar.jsx'
+import TempContent from '../../components/tempContent.jsx'
+import React from 'react'
+import Link from 'next/link'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   return (
-    <html>
-       <Head>
-      <title>Test</title>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-N4e4K1J3qFF+33cI2B0VKswOid9kKjHndUcO6Ua1gZXJjKUdP6z/nx6f+ZJvU2QjK6NcU6I37UyMwUobgMkBEw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    </Head>
-    
+
     <main className={styles.main}>
       <div className={styles.description}>
         {/* <p>Hello</p> */}
@@ -27,7 +21,7 @@ export default function Home() {
         <TempContent />
         {/* <Sidebar /> */}
 
-        
+
 
 
         {/* <p>
@@ -109,7 +103,7 @@ export default function Home() {
         </a> */}
       </div>
     </main>
-    </html>
-   
+
+
   )
 }
