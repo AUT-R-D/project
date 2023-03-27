@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from './page.module.css'
+import Sidebar from '../../components/sideBar.js'
+import React from 'react';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -8,7 +10,13 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.description}>
-        <p>
+        <p>Hello</p>
+        {/*start figuring out how to divide page into sections according to our visual designs.*/}
+
+        <Sidebar />
+
+
+        {/* <p>
           Get started by editing&nbsp;
           <code className={styles.code}>src/app/page.tsx</code>
         </p>
@@ -84,7 +92,7 @@ export default function Home() {
           <p className={inter.className}>
             Instantly deploy your Next.js site to a shareable URL with Vercel.
           </p>
-        </a>
+        </a> */}
       </div>
     </main>
   )
