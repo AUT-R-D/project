@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 
 export default function ExampleComponent() {
@@ -24,7 +25,7 @@ export default function ExampleComponent() {
       const data = await response.json()
       setOutputText(data.outputText)
       setIsLoading(false)
-    } catch (error) {
+    } catch (error: any) {
       setError(error)
       setIsLoading(false)
     }
@@ -40,7 +41,7 @@ export default function ExampleComponent() {
         <button type="submit">Submit</button>
       </form>
       {isLoading && <div>Loading...</div>}
-      {error && <div>Error: {error.message}</div>}
+      {error && <div>Error: {error}</div>}
       {outputText && <div>Output: {outputText}</div>}
     </div>
   )

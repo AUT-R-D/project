@@ -1,13 +1,8 @@
-import Image from "next/image";
-import styles from "./page.module.css";
-import React from "react";
-import Link from "next/link";
-import TempContent from "./components/tempContent";
-import SideBar from "./components/sideBar";
+import { useState } from "react";
 
 export default function Home() {
 	return (
-		<main className={styles.main}>
+		<main>
 			<div className="flex-grow bg-gray-100">
 				<nav className="bg-gray-800 py-2">
 					<div className="container mx-auto px-4 flex justify-between items-center">
