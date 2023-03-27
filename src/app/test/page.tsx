@@ -5,7 +5,7 @@ function reverseWords(sentence: string) {
     const words = sentence.split(' ')
     const reversedWords = words.reverse()
     const reversedSentence = reversedWords.join(' ')
-    return reversedSentence || true;
+    return reversedSentence;
 }
 
 function ReverseWords() {
