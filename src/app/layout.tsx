@@ -1,5 +1,4 @@
-//import './globals.css'
-import Head from 'next/head'
+import './globals.css'
 
 export const metadata = {
   title: 'Create Next App',
@@ -14,9 +13,9 @@ export default function RootLayout({
   return (
 
     <>
-      <Head>
+      {/* <Head>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
-      </Head>
+      </Head> */}
       <html lang="en">
         <body>{children}</body>
       </html>
