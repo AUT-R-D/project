@@ -3,7 +3,7 @@ import { useState } from "react";
 export default function Home() {
 	return (
 		<main>
-			<div className="flex-grow bg-gray-100">
+			<div className="h-full flex-grow bg-gray-100">
 				<nav className="bg-gray-800 py-2">
 					<div className="container mx-auto px-4 flex justify-between items-center">
 						<div className="text-gray-300 font-bold">My Website</div>
@@ -51,7 +51,7 @@ export default function Home() {
 						</ul>
 					</div>
 					<div className="flex-grow bg-white p-6">
-						<h1 className="text-3xl font-bold mb-4">Welcome to my website!</h1>
+						<h1 className="text-gray-900 text-3xl font-bold mb-4">Welcome to my website!</h1>
 						<p className="text-gray-700">
 							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ac
 							tincidunt eros, vel ullamcorper tellus. Integer vestibulum
