@@ -14,6 +14,7 @@ export default function ExampleComponent() {
 
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
+		if (isLoading || isError) return;
 
 		setIsLoading(true);
 		setIsError(false);
@@ -30,16 +31,21 @@ export default function ExampleComponent() {
 				},
 			});
 
+			const data = await response.json();
+
 			if (!response.ok) {
-				throw new Error("Network response was not ok");
+				if (data.error) {
+					throw new Error(data.error);
+				} else {
+					throw new Error("Network response was not ok");
+				}
 			}
 
-			const data = await response.json();
 			setOutputList([...outputList, data.response]);
 			setIsLoading(false);
 		} catch (error: any) {
 			console.log("Adding error message");
-			setOutputList([...outputList, "There was a problem: " + error.message]);
+			setOutputList([...outputList, error.message]);
 			setIsError(true);
 			setIsLoading(false);
 		}
@@ -119,9 +125,9 @@ export default function ExampleComponent() {
 					className="stretch mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl"
 				>
 					<div className="relative flex h-full flex-1 md:flex-col">
-						<div className="flex flex-col w-full py-2 flex-grow md:py-3 md:pl-4 relative border border-black/10 bg-white dark:border-gray-900/50 dark:text-white dark:bg-gray-700 rounded-md shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:shadow-[0_0_15px_rgba(0,0,0,0.10)]">
+						<div className="flex flex-col w-full py-2 flex-grow md:py-3 md:pl-4 relative text-white bg-gray-700 rounded-md shadow-[0_0_15px_rgba(0,0,0,0.10)]">
 							<textarea
-								disabled={isLoading}
+								disabled={isLoading || isError}
 								tabIndex={0}
 								rows={1}
 								value={inputText}
@@ -133,10 +139,11 @@ export default function ExampleComponent() {
 									height: "24px",
 									overflowY: "hidden",
 								}}
-								className="m-0 w-full resize-none border-0 bg-transparent p-0 pr-7 focus:ring-0 focus-visible:ring-0 dark:bg-transparent pl-2 md:pl-0"
+								className="m-0 w-full resize-none bg-transparent outline-none p-0 pr-7 dark:bg-transparent pl-2 md:pl-0"
 							/>
 							<button
 								type="submit"
+								disabled={isLoading || isError}
 								className="absolute p-1 rounded-md text-gray-500 bottom-1.5 md:bottom-2.5 hover:bg-gray-100 enabled:dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent right-1 md:right-2 disabled:opacity-40"
 							>
 								Submit
