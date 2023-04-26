@@ -3,9 +3,24 @@ import { useState } from "react";
 
 export default function Home() {
 	const [popupVisible, setPopupVisible] = useState(false);
+	const [var1, setVar1] = useState(""); // make var1 an array instead of a value
+
+	function saveVars() {
+		const inputElement = document.getElementById("input") as HTMLInputElement;
+		const inputvar1 = inputElement.value;
+		console.log("Set: " + inputvar1);
+		setVar1(inputvar1);
+	}
 
 	function togglePopup() {
 		setPopupVisible(!popupVisible);
+		/* if (!popupVisible) { // this function is made redundant by the setValue parameter of the input
+
+			const inputElement = document.getElementById("input") as HTMLInputElement;
+			console.log(inputElement)
+			console.log("Get: " + var1);
+			inputElement.value = var1;
+		}*/
 	}
 
 	return (
@@ -84,21 +99,22 @@ export default function Home() {
 
 				{popupVisible && (
 					<div className="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-white p-8 rounded shadow-md">
-					  <h2 className="text-xl text-black font-bold mb-4">Settings</h2>
-					  <label htmlFor="input" className="block text-gray-700 font-bold mb-2">Variable 1</label>
-					  <input id="input" type="text" className="border border-gray-300 p-2 rounded-md"></input>
+						<div className="bg-white p-8 rounded shadow-md">
+							<h2 className="text-xl text-black font-bold mb-4">Settings</h2>
+							<label htmlFor="input" className="block text-gray-700 font-bold mb-2">Variable 1</label>
+							<input id="input" type="text" className="border border-gray-300 p-2 rounded-md" defaultValue={var1}></input>
 
-					  <button className="block mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-						Save Settings
-					  </button>
-					  <button className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-							  onClick={togglePopup}>
-						Close
-					  </button>
+							<button className="block mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+								onClick={saveVars}>
+								Save Settings
+							</button>
+							<button className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+								onClick={togglePopup}>
+								Close
+							</button>
+						</div>
 					</div>
-				  </div>
-				  
+
 				)}
 			</div>
 
