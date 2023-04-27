@@ -3,24 +3,132 @@ import { useState } from "react";
 
 export default function Home() {
 	const [popupVisible, setPopupVisible] = useState(false);
-	const [var1, setVar1] = useState(""); // make var1 an array instead of a value
+	const myArray: string[] = []; // array of variables
+	const [vars, setVars] = useState(myArray); // setting array of variables as state
+	const els: HTMLElement[] = []; // array of variables
+	const [varInputs, setVarInputs] = useState(els); // setting array of variable inputs as state
+	const [firstVarInput, setFirstVarInput] = useState(""); // just for the first initial var input.
+	let [varNum, setVarNum] = useState(2); // for updating variable label names
+
+	window.onload = function () {
+		//console.log("Page has finished loading");
+		//var setTab = document.getElementById("settingstabparent") as HTMLElement;
+
+		// hiding setting tab when page is loaded...
+		const setTab = document.querySelector('#settingstabparent') as HTMLElement;
+		if (setTab !== null) {
+			setTab.style.display = "none";
+		}
+	}
 
 	function saveVars() {
-		const inputElement = document.getElementById("input") as HTMLInputElement;
-		const inputvar1 = inputElement.value;
-		console.log("Set: " + inputvar1);
-		setVar1(inputvar1);
+		const setTab = document.getElementById("settingstab") as HTMLInputElement;
+		const children = setTab.children;
+
+		// clear arrays then add all elements and values
+		vars.splice(0, vars.length);
+		varInputs.splice(0, varInputs.length);
+
+		// add all current vars and elements to arrays (starting after first one)
+		for (let i = 2; i < children.length; i++) {
+			if (children[i] !== null) {
+				const element = children[i] as HTMLElement;
+				const newVarInput = element.querySelector('input');
+
+				if (newVarInput !== null) {
+					const variable = newVarInput.value;
+
+					if (variable !== null) {
+						vars.push(variable);
+						varInputs.push(element);
+					}
+
+				}
+			}
+		}
+
+		setVars(vars);
+		setVarInputs(varInputs);
+
+		// for setting first var
+		const element = children[1] as HTMLInputElement;
+		const newVarInput = element.querySelector('input');
+		if (newVarInput !== null) {
+			if (newVarInput.value !== null) {
+				const variable = newVarInput.value;
+				setFirstVarInput(variable);
+			}
+
+		}
+
 	}
 
 	function togglePopup() {
-		setPopupVisible(!popupVisible);
-		/* if (!popupVisible) { // this function is made redundant by the setValue parameter of the input
+		const setTabParent = document.getElementById("settingstabparent") as HTMLElement;
 
-			const inputElement = document.getElementById("input") as HTMLInputElement;
-			console.log(inputElement)
-			console.log("Get: " + var1);
-			inputElement.value = var1;
-		}*/
+		// switching visibility of settings tab accordingly
+		if (setTabParent.style.display == "none") {
+			setTabParent.style.display = "block";
+		}
+		else {
+			setTabParent.style.display = "none";
+		}
+
+
+		// showing divs upon opening settings
+		if (setTabParent.style.display == "block") {
+
+			console.log(vars);
+			console.log(varInputs);
+
+			const setTab = document.getElementById("settingstab") as HTMLElement;
+
+			for (let i = 0; i < vars.length; i++) {
+				if (vars[i] !== undefined) {
+					setTab.appendChild(varInputs[i]);
+				}
+
+			}
+		}
+
+		const setTab = document.getElementById("settingstab") as HTMLInputElement;
+		const children = setTab.children;
+
+		for (let i = 2; i < children.length; i++) {
+			if (children[i].querySelector('input') !== null) {
+				const input = children[i].querySelector('input');
+				if (input !== null) {
+					if (input.value === "") {
+						setTab.removeChild(children[i]);
+						setVarNum(varNum - 1);
+						console.log("Removed: "+ varNum);
+					}
+				}
+			}
+			
+		}
+	}
+
+	function addPlus() {
+		// append new variable to settings tab
+		const setTab = document.getElementById("settingstab") as HTMLInputElement;
+		const varInput = document.getElementById("varInput") as HTMLInputElement
+		const newVar = varInput.cloneNode(true) as HTMLElement;
+		const newVarLabel = newVar.querySelector('label');
+		const newVarInput = newVar.querySelector('input');
+		setTab.appendChild(newVar);
+
+		// change new variable's label to correct number
+		if (newVarLabel !== null) {
+			newVarLabel.textContent = "Variable " + varNum;
+			setVarNum(varNum + 1);
+			console.log("Added: "+ varNum);
+		}
+
+		// change newvars value to ""
+		if (newVarInput !== null) {
+			newVarInput.value = "";
+		}
 	}
 
 	return (
@@ -97,25 +205,34 @@ export default function Home() {
 			<div>
 
 
-				{popupVisible && (
-					<div className="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-						<div className="bg-white p-8 rounded shadow-md">
-							<h2 className="text-xl text-black font-bold mb-4">Settings</h2>
-							<label htmlFor="input" className="block text-gray-700 font-bold mb-2">Variable 1</label>
-							<input id="input" type="text" className="border border-gray-300 p-2 rounded-md" defaultValue={var1}></input>
+				<div className="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center z-50" id="settingstabparent">
+					<div className="bg-white p-8 rounded shadow-md" id="settingstab">
+						<h2 className="text-xl text-black font-bold mb-4">Settings</h2>
 
-							<button className="block mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-								onClick={saveVars}>
-								Save Settings
-							</button>
-							<button className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-								onClick={togglePopup}>
-								Close
-							</button>
+						<div id="varInput" className="pt-3">
+							<label htmlFor="input" className="block text-gray-700 font-bold mb-2" id="varLabel">Variable 1</label>
+							<input id="input" type="text" className="border border-gray-300 p-2 rounded-md" defaultValue={firstVarInput}></input>
 						</div>
-					</div>
 
-				)}
+						<div className="flex w-8 h-8 bg-black mt-5 items-center" id="addBtn" onClick={addPlus}>
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" className="w-6 h-6">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
+							</svg>
+						</div>
+
+
+
+						<button className="block mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+							onClick={saveVars}>
+							Save Settings
+						</button>
+						<button className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+							onClick={togglePopup}>
+							Close
+						</button>
+					</div>
+				</div>
+
 			</div>
 
 		</main>
