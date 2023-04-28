@@ -1,109 +1,182 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
+	const bottomRef = useRef<null | HTMLDivElement>(null);
+
+	const [inputText, setInputText] = useState("");
+
+	const [inputList, setInputList] = useState<string[]>([]);
+	const [outputList, setOutputList] = useState<string[]>([]);
+
+	const [isLoading, setIsLoading] = useState(false);
+	const [isError, setIsError] = useState(false);
+
 	const [popupVisible, setPopupVisible] = useState(false);
 
 	function togglePopup() {
 		setPopupVisible(!popupVisible);
 	}
 
+	// Chat Box code
+
+	// Handle form submission
+	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		if (isLoading || isError) return;
+
+		setIsLoading(true);
+		setIsError(false);
+		setInputText("");
+
+		setInputList([...inputList, inputText]);
+
+		try {
+			const response = await fetch("http://localhost:5000/message", {
+				method: "POST",
+				body: JSON.stringify({ message: inputText }),
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				if (data.error) {
+					throw new Error(data.error);
+				} else {
+					throw new Error("Network response was not ok");
+				}
+			}
+
+			setOutputList([...outputList, data.response]);
+			setIsLoading(false);
+		} catch (error: any) {
+			console.log("Adding error message");
+			setOutputList([...outputList, error.message]);
+			setIsError(true);
+			setIsLoading(false);
+		}
+	};
+
+	// Submit form on enter or new line on shift+enter
+	const onEnter = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if (event.key === "Enter" && !event.shiftKey) {
+			event.preventDefault();
+			event.stopPropagation();
+			const form = event.currentTarget.form!;
+
+			form.requestSubmit();
+		}
+	};
+
+	// Update textarea height on input and store input text
+	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+		setInputText(event.target.value);
+		event.target.style.height = "24px";
+		event.target.style.height = event.target.scrollHeight + "px";
+		event.target.style.overflowY =
+			event.target.scrollHeight > 200 ? "scroll" : "hidden";
+	};
+
+	// Scroll to bottom of chat box
+	useEffect(() => {
+		// 👇️ scroll to bottom every time messages change
+		if (bottomRef.current === null) {
+		} else {
+			bottomRef.current.scrollIntoView({
+				behavior: "smooth",
+			});
+		}
+	}, [inputList]);
+
 	return (
 		<main>
-			<div className="h-full flex-grow bg-gray-100">
-				<nav className="bg-gray-800 py-2">
-					<div className="container mx-auto px-4 flex justify-between items-center">
-						<div className="text-gray-300 font-bold">My Website</div>
-						<form className="flex">
-							<input
-								className="rounded-l-lg bg-gray-800 text-gray-100 border-none w-64 px-4 leading-tight focus:outline-none"
-								type="text"
-								placeholder="Search..."
-							></input>
-							<button className="px-4 bg-blue-500 text-white rounded-r-lg hover:bg-blue-400 focus:outline-none focus:bg-blue-400">
-								Search
-							</button>
-						</form>
-					</div>
-				</nav>
-				<div className="flex flex-row-reverse">
-					<div className="w-1/5 bg-gray-200 py-4 px-6">
-						<h2 className="text-gray-800 font-bold mb-4">Conversations</h2>
-						<ul className="text-gray-700">
-							<li className="mb-4">
-								<a href="#" className="text-blue-500 hover:text-blue-700">
-									Conversation 1
-								</a>
-							</li>
-							<li className="mb-4">
-								<a href="#" className="text-blue-500 hover:text-blue-700">
-									Conversation 2
-								</a>
-							</li>
-							<li className="mb-4">
-								<a href="#" className="text-blue-500 hover:text-blue-700">
-									Conversation 3
-								</a>
-							</li>
-							<li className="mb-4">
-								<a href="#" className="text-blue-500 hover:text-blue-700">
-									Conversation 4
-								</a>
-							</li>
-							<li className="mb-4">
-								<a href="#" className="text-blue-500 hover:text-blue-700">
-									Conversation 5
-								</a>
-							</li>
-						</ul>
-					</div>
-					<div className="flex-grow bg-white p-6">
-						<h1 className="text-gray-900 text-3xl font-bold mb-4">Welcome to my website!</h1>
-						<p className="text-gray-700">
-							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ac
-							tincidunt eros, vel ullamcorper tellus. Integer vestibulum
-							tincidunt lacus, sit amet viverra neque bibendum vel. Duis vel
-							lorem tincidunt, maximus velit vitae, cursus nibh. Fusce auctor,
-							augue eu varius eleifend, erat ante bibendum mauris, nec malesuada
-							quam libero id odio. Sed volutpat velit nec nulla dictum
-							convallis.
-						</p>
-
-					</div>
-					<div className="bg-white rounded-lg shadow-lg p-6">
-						<div onClick={togglePopup} id="settings-icon" className="bg-white rounded-lg shadow p-4">
-							<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="black">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"></path>
-							</svg>
+			<div className="overflow-hidden w-full h-full relative flex bg-gray-600">
+				<div className="flex-1 overflow-hidden">
+					<div className="overflow-y-auto h-full w-full">
+						<div className="h-full dark:bg-gray-800">
+							<div className="flex flex-col items-center text-sm dark:bg-gray-800">
+								{inputList.map((input, index) => (
+									<div key={index} className="w-full">
+										<div
+											key={index}
+											className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 dark:bg-gray-800"
+										>
+											<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
+												<div>Input: {input}</div>
+											</div>
+										</div>
+										<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
+											<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
+												{isLoading &&
+												outputList[index] == null ? (
+													<div className="loading">
+														Loading
+													</div>
+												) : isError &&
+												  index ==
+														outputList.length -
+															1 ? (
+													<div
+														style={{ color: "red" }}
+													>
+														Error:{" "}
+														{outputList[index]}
+													</div>
+												) : (
+													<div>
+														{outputList[index]}
+													</div>
+												)}
+											</div>
+										</div>
+									</div>
+								))}
+								<div
+									className="w-full h-24 md:h-32 flex-shrink-0"
+									ref={bottomRef}
+								/>
+							</div>
 						</div>
 					</div>
 				</div>
+
+				<div className="absolute bottom-0 left-0 w-full bg-white dark:bg-gray-800 pt-4">
+					<form
+						onSubmit={handleSubmit}
+						className="stretch mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl"
+					>
+						<div className="relative flex h-full flex-1 md:flex-col">
+							<div className="flex flex-col w-full py-2 flex-grow md:py-3 md:pl-4 relative text-white bg-gray-700 rounded-md shadow-[0_0_15px_rgba(0,0,0,0.10)]">
+								<textarea
+									disabled={isLoading || isError}
+									tabIndex={0}
+									rows={1}
+									value={inputText}
+									onChange={onChange}
+									onKeyDown={onEnter}
+									placeholder="Send a message..."
+									style={{
+										maxHeight: "200px",
+										height: "24px",
+										overflowY: "hidden",
+									}}
+									className="m-0 w-full resize-none bg-transparent outline-none p-0 pr-7 dark:bg-transparent pl-2 md:pl-0"
+								/>
+								<button
+									type="submit"
+									disabled={isLoading || isError}
+									className="absolute p-1 rounded-md text-gray-500 bottom-1.5 md:bottom-2.5 hover:bg-gray-100 enabled:dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent right-1 md:right-2 disabled:opacity-40"
+								>
+									Submit
+								</button>
+							</div>
+						</div>
+					</form>
+				</div>
 			</div>
-			<div>
-
-
-				{popupVisible && (
-					<div className="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-white p-8 rounded shadow-md">
-					  <h2 className="text-xl text-black font-bold mb-4">Settings</h2>
-					  <label htmlFor="input" className="block text-gray-700 font-bold mb-2">Variable 1</label>
-					  <input id="input" type="text" className="border border-gray-300 p-2 rounded-md"></input>
-
-					  <button className="block mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-						Save Settings
-					  </button>
-					  <button className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-							  onClick={togglePopup}>
-						Close
-					  </button>
-					</div>
-				  </div>
-				  
-				)}
-			</div>
-
 		</main>
-
-
 	);
 }
