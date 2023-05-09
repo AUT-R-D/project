@@ -44,6 +44,7 @@ export default function Home() {
 				}
 			}
 
+			// Loop through the messages and add them to the array
 			for (const pastMessage of data) {
 				const message = new Message(pastMessage.sender, pastMessage.content);
 				pastMessages.push(message);
@@ -65,9 +66,11 @@ export default function Home() {
 		setIsLoading(true);
 		setInputText("");
 
+		// Create message variables
 		const inputMessage = new Message("user", inputText);
 		const outputMessage = new Message("bot", null);
 
+		// Add messages to state
 		setMessages([...messages, inputMessage, outputMessage]);
 
 		try {
@@ -92,9 +95,11 @@ export default function Home() {
 				}
 			}
 
+			// Set the message content
 			outputMessage.setMessage(data.response);
 			setIsLoading(false);
 		} catch (error: any) {
+			// Set the error message
 			outputMessage.setError(error.message);
 			setIsLoading(false);
 		}
@@ -131,6 +136,7 @@ export default function Home() {
 		setConversationID(id!);
 		const getInitialMessages = async () => {
 			const pastMessages = await getMessages(id!);
+			// If no past messages reset the ID
 			if (pastMessages.length == 0) {
 				const newID = uuid();
 				localStorage.setItem("conversationID", newID);
