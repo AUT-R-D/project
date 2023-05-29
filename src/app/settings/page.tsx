@@ -43,10 +43,10 @@ export default function Home() {
 						<option value="plane">Plane</option>
 						<option value="glasses">Glasses</option>
 					</select>
-					<select className="rounded-lg p-2" defaultValue={"plane"}>
-						<option value="phone">Chat GTP</option>
-						<option value="plane">Bard</option>
-						<option value="glasses">Google</option>
+					<select className="rounded-lg p-2" defaultValue={"chat-gpt"}>
+						<option value="chat-gpt">Chat GTP</option>
+						<option value="bard">Bard</option>
+						<option value="google">Google</option>
 					</select>
 				</div>
 
