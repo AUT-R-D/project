@@ -26,7 +26,7 @@ export default function Home() {
 	const getMessages = async (conversation_id: string) => {
 		const pastMessages = Array<Message>();
 		try {
-			const response = await fetch("http://localhost:5000/conversations", {
+			const response = await fetch("/api/conversations", {
 				method: "POST",
 				body: JSON.stringify({ conversation_id }),
 				headers: {
@@ -68,16 +68,20 @@ export default function Home() {
 
 		// Create message variables
 		const inputMessage = new Message("user", inputText);
-		const outputMessage = new Message("bot", null);
+		const outputMessage = new Message("assistant", null);
 
 		// Add messages to state
 		setMessages([...messages, inputMessage, outputMessage]);
 
 		try {
-			const response = await fetch("http://localhost:5000/message", {
+			const response = await fetch("/api/message", {
 				method: "POST",
 				body: JSON.stringify({
 					message: inputText,
+					// Send content of all messages
+					messages: messages.map((message) => {
+						return { role: message.getSender(), content: message.getMessage() };
+					}),
 					conversation_id: conversationID,
 				}),
 				headers: {
@@ -172,7 +176,7 @@ export default function Home() {
 									>
 										{message.getSender() == "user" ? (
 											<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
-												<div>Input: {message.getMessage()}</div>
+												<div>You: {message.getMessage()}</div>
 											</div>
 										) : (
 											<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
@@ -186,7 +190,7 @@ export default function Home() {
 															Error: {message.getError()}
 														</div>
 													) : (
-														<div>{message.getMessage()}</div>
+														<div>Bot: {message.getMessage()}</div>
 													)}
 												</div>
 											</div>
