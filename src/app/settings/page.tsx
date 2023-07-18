@@ -3,8 +3,10 @@ import { Variable } from "@/types/variable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { ChangeEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+	const router = useRouter();
 	const [variables, setVariables] = useState(Array<Variable>()); // setting array of variables as state
 
 	function addPlus() {
@@ -45,8 +47,9 @@ export default function Home() {
 					</select>
 					<select className="rounded-lg p-2" defaultValue={"chat-gpt"}>
 						<option value="chat-gpt">Chat GTP</option>
-						<option value="bard">Bard</option>
-						<option value="google">Google</option>
+						<option value="dialog">Dialog Flow</option>
+						<option value="wit">Wit.ai</option>
+						<option value="lex">Amazon Lex</option>
 					</select>
 				</div>
 
@@ -121,7 +124,7 @@ export default function Home() {
 				>
 					Save Settings
 				</button>
-				<button className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+				<button className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={() => {router.push("/")}}>
 					Close
 				</button>
 			</div>
