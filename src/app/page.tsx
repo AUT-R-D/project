@@ -50,9 +50,12 @@ export default function Home() {
 				pastMessages.push(message);
 			}
 		} catch (error: any) {
-			console.log("Error getting past messages");
 			const message = new Message("bot", null);
-			message.setError(error.message);
+			if (error instanceof SyntaxError) {
+				message.setError("Error connecting to database");
+			} else {
+				message.setError(error.message);
+			}
 			pastMessages.push(message);
 		}
 		return pastMessages;
