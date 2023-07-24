@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
 	}
 
 	const message = res.message;
+	const messages = res.messages || [];
 
 	if (!message || message.length < 1) {
 		return NextResponse.json({ error: "Message not found" }, { status: 400 });
@@ -29,28 +30,26 @@ export async function POST(request: NextRequest) {
 	const collection = db.collection("conversations");
 
 	try {
+		if (messages.length == 0) {
+			messages.push({
+				role: "system",
+				content: "You are an unhelpful assistant.",
+			});
+		}
 
 		// Commented out for now since no access to OpenAI API
-		const rawResponse = await sendMessage(message, res.messages);
+		const rawResponse = await sendMessage(message, messages);
 
 		const response = rawResponse!.content;
 		//const response = `You're message was: ${message}`
 
+		// Add the response to the messages array
+		messages.push({ role: "assistant", content: response });
+
 		await collection.updateOne(
 			{ conversation_id: conversation_id },
-			{
-				$push: {
-					messages: {
-						$each: [
-							{ content: message, sender: "user" },
-							{ content: response, sender: "assistant" },
-						],
-					},
-				},
-			},
-			{
-				upsert: true,
-			}
+			{ $set: { messages } },
+			{ upsert: true }
 		);
 
 		return NextResponse.json({ response });
