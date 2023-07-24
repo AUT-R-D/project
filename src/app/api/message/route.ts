@@ -31,8 +31,10 @@ export async function POST(request: NextRequest) {
 	try {
 
 		// Commented out for now since no access to OpenAI API
-		//const response = await sendMessage(message, res.messages);
-		const response = `You're message was: ${message}`
+		const rawResponse = await sendMessage(message, res.messages);
+
+		const response = rawResponse!.content;
+		//const response = `You're message was: ${message}`
 
 		await collection.updateOne(
 			{ conversation_id: conversation_id },
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
 					messages: {
 						$each: [
 							{ content: message, sender: "user" },
-							{ content: response, sender: "bot" },
+							{ content: response, sender: "assistant" },
 						],
 					},
 				},
