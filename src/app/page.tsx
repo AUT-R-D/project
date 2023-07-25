@@ -1,5 +1,8 @@
 "use client";
 import { Message } from "@/types/message";
+import { faGear } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 const { uuid } = require("uuidv4");
 import { useEffect, useRef, useState } from "react";
 
@@ -226,7 +229,13 @@ export default function Home() {
 					onSubmit={handleSubmit}
 					className="stretch mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl"
 				>
-					<div className="relative flex h-full flex-1 md:flex-col">
+					<div className="relative flex h-full flex-1 md:flex-row">
+						<Link
+							href={"/settings"}
+							className="md:py-3 md:px-4 mr-2 rounded-md bg-slate-600 hover:bg-slate-400"
+						>
+							<FontAwesomeIcon icon={faGear} />
+						</Link>
 						<div className="flex flex-col w-full py-2 flex-grow md:py-3 md:pl-4 relative text-white bg-gray-700 rounded-md shadow-[0_0_15px_rgba(0,0,0,0.10)]">
 							<textarea
 								disabled={isLoading}
@@ -245,8 +254,9 @@ export default function Home() {
 							/>
 							<button
 								type="submit"
-								disabled={isLoading}
-								className="absolute p-1 rounded-md text-gray-500 bottom-1.5 md:bottom-2.5 hover:bg-gray-100 enabled:dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent right-1 md:right-2 disabled:opacity-40"
+								disabled={isLoading || inputText.length == 0}
+								aria-disabled={inputText.length == 0}
+								className="absolute p-1 rounded-md aria-disabled:text-gray-400 text-gray-300 bottom-1.5 md:bottom-2.5 hover:bg-gray-100 enabled:dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent right-1 md:right-2 disabled:opacity-40"
 							>
 								Submit
 							</button>
