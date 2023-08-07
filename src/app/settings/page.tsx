@@ -48,11 +48,9 @@ export default function Home() {
 			});
 
 			const data = await response.json();
-			const settings = data.settings;
+			const settings = data;
 
 			const variables = Array<Variable>();
-
-			console.log(settings);
 
 			for (const variable of settings.variables) {
 				const newVariable = new Variable(variable.name, variable.value);

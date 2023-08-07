@@ -9,12 +9,12 @@ export async function GET() {
 	const document = await collection.findOne({});
 
 	if (!document) {
-		return NextResponse.json({ settings: [] });
+		return NextResponse.json({ error: "Settings not found" }, { status: 400 });
 	}
 
-	const settings = document.settings;
+	const settings = document;
 
-	return NextResponse.json({ settings });
+	return NextResponse.json({ ...settings });
 }
 
 export async function POST(request: NextRequest) {
@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
 	const collection = db.collection("settings");
 
 	try {
-		collection.updateOne({}, { $set: { settings } }, { upsert: true });
-		return NextResponse.json({ settings });
+		collection.updateOne({}, { $set: { ...settings } }, { upsert: true });
+		return NextResponse.json({ ...settings });
 	} catch (error: any) {
 		console.log(error.message);
 		return NextResponse.json({ error: error.message }, { status: 500 });
