@@ -19,7 +19,7 @@ const openai = new OpenAIApi(config);
 // 3 - To have all key information from user be saved into our mongo DB.
 
 const prompt = "Pretend you are a chatbot for an insurance company. \
-You must speak with slang level (out of 10): " + settingsVar.slang + " \
+You must speak with slang level (out of 10): " + "settingsVar.slang" + " \
 \
 The variables below and the required information from the user are: \
 1) policy number: requires full name, type of insurance, and date of insurance. \
