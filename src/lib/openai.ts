@@ -14,11 +14,12 @@ const config = new Configuration({
 const openai = new OpenAIApi(config);
 
 // Goal
-// 1 - To use user-set variables within the prompt below (Type of company, slang and variables).
-// 2 - To have all key information from user be saved into our mongo DB.
+// 1 - Ensure prompt only occurs once per conversation (at the start)
+// 2 - To use user-set variables within the prompt below (Type of company, slang and variables).
+// 3 - To have all key information from user be saved into our mongo DB.
 
 const prompt = "Pretend you are a chatbot for an insurance company. \
-You must speak with slang level (out of 10): 3 \
+You must speak with slang level (out of 10): " + settingsVar.slang + " \
 \
 The variables below and the required information from the user are: \
 1) policy number: requires full name, type of insurance, and date of insurance. \
