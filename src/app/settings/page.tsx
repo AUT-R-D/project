@@ -2,14 +2,18 @@
 import { Variable } from "@/types/variable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
 	const router = useRouter();
 	const [variables, setVariables] = useState(Array<Variable>()); // setting array of variables as state
+	const [scenario, setScenario] = useState("plane"); // setting scenario as state
+	const [chatbot, setChatbot] = useState("chat-gpt"); // setting chatbot as state
+	const [saved, setSaved] = useState(true); // setting saved as state
 
 	function addPlus() {
+		if (saved) setSaved(false);
 		const newVariableName = (
 			document.getElementById("variableName") as HTMLInputElement
 		).value;
@@ -20,6 +24,7 @@ export default function Home() {
 	}
 
 	function removeVariable(index: number) {
+		if (saved) setSaved(false);
 		const newVariables = [...variables];
 		newVariables.splice(index, 1);
 		setVariables(newVariables);
@@ -29,10 +34,38 @@ export default function Home() {
 		index: number,
 		event: ChangeEvent<HTMLInputElement>
 	) {
+		if (saved) setSaved(false);
 		const newVariables = [...variables];
 		newVariables[index].setValue(event.target.value);
 		setVariables(newVariables);
 	}
+
+	// Get initial messages
+	useEffect(() => {
+		const getVariables = async () => {
+			const response = await fetch("/api/settings", {
+				method: "GET",
+			});
+
+			const data = await response.json();
+			const settings = data.settings;
+
+			const variables = Array<Variable>();
+
+			console.log(settings);
+
+			for (const variable of settings.variables) {
+				const newVariable = new Variable(variable.name, variable.value);
+				variables.push(newVariable);
+			}
+
+			setScenario(settings.scenario);
+			setChatbot(settings.chatBot);
+			setVariables(variables);
+		};
+
+		getVariables();
+	}, []);
 
 	return (
 		<div className="h-full bg-gray-500 bg-opacity-50 flex items-center justify-center">
@@ -40,12 +73,26 @@ export default function Home() {
 				<h2 className="text-xl text-black font-bold mb-4">Settings</h2>
 
 				<div className="flex space-x-2 justify-center">
-					<select className="rounded-lg p-2" defaultValue={"plane"}>
+					<select
+						className="rounded-lg p-2"
+						value={scenario}
+						onChange={(event) => {
+							setSaved(false);
+							setScenario(event.target.value);
+						}}
+					>
 						<option value="phone">Phone</option>
 						<option value="plane">Plane</option>
 						<option value="glasses">Glasses</option>
 					</select>
-					<select className="rounded-lg p-2" defaultValue={"chat-gpt"}>
+					<select
+						className="rounded-lg p-2"
+						value={chatbot}
+						onChange={(event) => {
+							setSaved(false);
+							setChatbot(event.target.value);
+						}}
+					>
 						<option value="chat-gpt">Chat GTP</option>
 						<option value="dialog">Dialog Flow</option>
 						<option value="wit">Wit.ai</option>
@@ -54,8 +101,6 @@ export default function Home() {
 				</div>
 
 				{variables.map((variable, index) => {
-					console.log(variable);
-
 					return (
 						<div id={`var-${index}`} className="pt-3" key={index}>
 							<div className="flex flex-row justify-center items-center space-x-1 mb-2">
@@ -117,15 +162,36 @@ export default function Home() {
 				</div>
 
 				<button
-					className="block mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-auto"
-					onClick={(event) => {
-						console.log(variables);
+					className="block mt-4 bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 disabled:hover:bg-gray-400 text-white font-bold py-2 px-4 rounded mx-auto"
+					onClick={async (event) => {
+						const settings = {
+							chatBot: "",
+							scenario: "",
+							variables: Array<Variable>(),
+						};
+
+						settings.chatBot = chatbot;
+						settings.scenario = scenario;
+						settings.variables = variables;
+
+						await fetch("/api/settings", {
+							method: "POST",
+							body: JSON.stringify(settings),
+						});
+						setSaved(true);
 					}}
+					disabled={saved}
 				>
 					Save Settings
 				</button>
-				<button className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={() => {router.push("/")}}>
-					Close
+				<button
+					className="mt-4 bg-red-500 hover:bg-red-700 aria-disabled:bg-gray-500 aria-disabled:hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+					onClick={() => {
+						router.push("/");
+					}}
+					aria-disabled={saved}
+				>
+					{saved ? "Back" : "Discard"}
 				</button>
 			</div>
 		</div>

@@ -50,7 +50,7 @@ export async function sendMessage(
 
 		const completion = await openai.createChatCompletion({
 			model: "gpt-3.5-turbo",
-			messages: messages,
+			messages,
 		});
 
 		const responseMessage = completion.data.choices[0].message;
