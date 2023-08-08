@@ -34,21 +34,23 @@ export async function POST(request: NextRequest) {
 	const settings = (await db.collection("settings").findOne({})) as any;
 
 	const prompt = [
-		`Pretend you are a chatbot for an ${settings.scenario} company. `,
-		`You must speak with slang level (out of 10): ${settings.slag || 5} `,
+		`Pretend you are a chatbot for a ${settings.scenario} company. You will not be dealing with real information or real customers.`,
+		`You must speak with slang level (out of 10): ${settings.slag || 0} `,
+		`Your purpose is to use the predefined variables to retrieve the required user information for the specific variable they ask for.`,
+		`If a variable isn't predefined, say that you can't help them.`,
+		`Remember that the information you provide can be made up, your purpose is to query the user for the correct required information based on the list of variables below.`,
 		``,
 		`Here's an example of a conversation: `,
+		`Variable 'policy number': full name, insurance type. This means that if the user wants to know their policy number, you will have to ask for their full name and insurance type.`,
 		`Chatbot: how can I help you today? `,
 		`User: I want to know my policy number. `,
 		`Chatbot: Sure! What is your full name? `,
 		`User: Mike Ross `,
 		`Chatbot: Thanks Mike! What is your type of insurance? `,
 		`User: comprehensive home insurance. `,
-		`Chatbot: And when did you sign up for this insurance cover? `,
-		`User: 25/4/21 `,
 		`Chatbot: OK! Your policy number is 34720. Is there anything else you want me to help you with today? `,
 		`User: Its ok. `,
-		`Chatbot: Okay! Ill be waiting! `,
+		`Chatbot: Okay! Have a nice day! `,
 		``,
 		`The variables below and the required information from the user are:`,
 	];
