@@ -1,6 +1,6 @@
 "use client";
 import { Message } from "@/types/message";
-import { faGear } from "@fortawesome/free-solid-svg-icons";
+import { faGear, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 const { uuid } = require("uuidv4");
@@ -49,7 +49,10 @@ export default function Home() {
 
 			// Loop through the messages and add them to the array
 			for (const pastMessage of data) {
-				const message = new Message(pastMessage.role, pastMessage.content);
+				const message = new Message(
+					pastMessage.role,
+					pastMessage.content
+				);
 				pastMessages.push(message);
 			}
 		} catch (error: any) {
@@ -86,7 +89,10 @@ export default function Home() {
 					message: inputText,
 					// Send content of all messages
 					messages: messages.map((message) => {
-						return { role: message.getSender(), content: message.getMessage() };
+						return {
+							role: message.getSender(),
+							content: message.getMessage(),
+						};
 					}),
 					conversation_id: conversationID,
 				}),
@@ -133,6 +139,13 @@ export default function Home() {
 		event.target.style.height = event.target.scrollHeight + "px";
 		event.target.style.overflowY =
 			event.target.scrollHeight > 200 ? "scroll" : "hidden";
+	};
+
+	const resetConversation = () => {
+		const newID = uuid();
+		localStorage.setItem("conversationID", newID);
+		setConversationID(newID);
+		setMessages([]);
 	};
 
 	// Get initial messages
@@ -184,7 +197,9 @@ export default function Home() {
 								</div>
 							</div>
 							{messages
-								.filter((message) => message.getSender() != "system")
+								.filter(
+									(message) => message.getSender() != "system"
+								)
 								.map((message, index) => (
 									<div key={index} className="w-full">
 										<div
@@ -193,21 +208,37 @@ export default function Home() {
 										>
 											{message.getSender() == "user" ? (
 												<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
-													<div>You: {message.getMessage()}</div>
+													<div>
+														You:{" "}
+														{message.getMessage()}
+													</div>
 												</div>
 											) : (
 												<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
 													<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
 														{isLoading &&
-														message.getMessage() == null &&
-														message.getError() == false ? (
-															<div className="loading">Loading</div>
-														) : message.getError() != false ? (
-															<div style={{ color: "red" }}>
-																Error: {message.getError()}
+														message.getMessage() ==
+															null &&
+														message.getError() ==
+															false ? (
+															<div className="loading">
+																Loading
+															</div>
+														) : message.getError() !=
+														  false ? (
+															<div
+																style={{
+																	color: "red",
+																}}
+															>
+																Error:{" "}
+																{message.getError()}
 															</div>
 														) : (
-															<div>Bot: {message.getMessage()}</div>
+															<div>
+																Bot:{" "}
+																{message.getMessage()}
+															</div>
 														)}
 													</div>
 												</div>
@@ -261,6 +292,13 @@ export default function Home() {
 								Submit
 							</button>
 						</div>
+						<button
+							type="reset"
+							onClick={resetConversation}
+							className="md:py-3 md:px-4 ml-2 rounded-md bg-slate-600 hover:bg-slate-400"
+						>
+							<FontAwesomeIcon icon={faTrash} />
+						</button>
 					</div>
 				</form>
 			</div>
