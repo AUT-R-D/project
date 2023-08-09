@@ -5,11 +5,19 @@ import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+type Settings = {
+	chatbot: string;
+	scenario: string;
+	slang: number;
+	variables: Variable[];
+};
+
 export default function Home() {
 	const router = useRouter();
 	const [variables, setVariables] = useState(Array<Variable>()); // setting array of variables as state
 	const [scenario, setScenario] = useState("plane"); // setting scenario as state
 	const [chatbot, setChatbot] = useState("chat-gpt"); // setting chatbot as state
+	const [slang, setSlang] = useState(5); // setting slang as state
 	const [saved, setSaved] = useState(true); // setting saved as state
 
 	function addPlus() {
@@ -48,18 +56,33 @@ export default function Home() {
 			});
 
 			const data = await response.json();
-			const settings = data;
 
-			const variables = Array<Variable>();
+			if (data.error) {
+				const settings: Settings = {
+					chatbot,
+					scenario,
+					slang,
+					variables,
+				};
 
-			for (const variable of settings.variables) {
+				await fetch("/api/settings", {
+					method: "POST",
+					body: JSON.stringify(settings),
+				});
+			}
+
+			const settings: Settings = data;
+
+			const newVariables = Array<Variable>();
+
+			for (const variable of settings.variables || []) {
 				const newVariable = new Variable(variable.name, variable.value);
-				variables.push(newVariable);
+				newVariables.push(newVariable);
 			}
 
 			setScenario(settings.scenario);
-			setChatbot(settings.chatBot);
-			setVariables(variables);
+			setChatbot(settings.chatbot);
+			setVariables(newVariables);
 		};
 
 		getVariables();
@@ -96,6 +119,35 @@ export default function Home() {
 						<option value="wit">Wit.ai</option>
 						<option value="lex">Amazon Lex</option>
 					</select>
+				</div>
+				<div>
+					<label className="block text-gray-700 font-bold text-lg pt-3">
+						Slang
+					</label>
+					<input
+						type="number"
+						min={0}
+						max={10}
+						maxLength={2}
+						className="border border-gray-300 p-2 rounded-md"
+						value={slang}
+						onChange={(event) => {
+							if (parseInt(event.target.value) > 10) {
+								event.target.value = "10";
+							} else if (parseInt(event.target.value) < 0) {
+								event.target.value = "0";
+							} else if (event.target.value == "") {
+								event.target.value = "0";
+							} else if (event.target.value.length > 2) {
+								event.target.value = event.target.value.slice(
+									0,
+									2
+								);
+							}
+							setSaved(false);
+							setSlang(parseInt(event.target.value));
+						}}
+					/>
 				</div>
 
 				{variables.map((variable, index) => {
@@ -154,7 +206,10 @@ export default function Home() {
 							title="Add variable"
 							onClick={addPlus}
 						>
-							<FontAwesomeIcon icon={faPlus} className="text-white mx-auto" />
+							<FontAwesomeIcon
+								icon={faPlus}
+								className="text-white mx-auto"
+							/>
 						</button>
 					</div>
 				</div>
@@ -162,15 +217,12 @@ export default function Home() {
 				<button
 					className="block mt-4 bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 disabled:hover:bg-gray-400 text-white font-bold py-2 px-4 rounded mx-auto"
 					onClick={async (event) => {
-						const settings = {
-							chatBot: "",
-							scenario: "",
-							variables: Array<Variable>(),
+						const settings: Settings = {
+							chatbot,
+							scenario,
+							slang,
+							variables,
 						};
-
-						settings.chatBot = chatbot;
-						settings.scenario = scenario;
-						settings.variables = variables;
 
 						await fetch("/api/settings", {
 							method: "POST",

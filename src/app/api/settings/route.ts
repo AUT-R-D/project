@@ -9,7 +9,7 @@ export async function GET() {
 	const document = await collection.findOne({});
 
 	if (!document) {
-		return NextResponse.json({ error: "Settings not found" }, { status: 400 });
+		return NextResponse.json({ error: "Settings not found" }, { status: 201 });
 	}
 
 	const settings = document;
