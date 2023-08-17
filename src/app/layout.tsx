@@ -18,9 +18,6 @@ export default function RootLayout({
 }) {
 	return (
 		<>
-			{/* <Head>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
-      </Head> */}
 			<html lang="en" className="h-full">
 				<body className="h-full">{children}</body>
 			</html>

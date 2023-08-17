@@ -17,12 +17,6 @@ export default function Home() {
 
 	const [isLoading, setIsLoading] = useState(false);
 
-	const [popupVisible, setPopupVisible] = useState(false);
-
-	function togglePopup() {
-		setPopupVisible(!popupVisible);
-	}
-
 	// Chat Box code
 
 	// Get initial messages
