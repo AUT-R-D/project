@@ -43,10 +43,7 @@ export default function Home() {
 
 			// Loop through the messages and add them to the array
 			for (const pastMessage of data) {
-				const message = new Message(
-					pastMessage.role,
-					pastMessage.content
-				);
+				const message = new Message(pastMessage.role, pastMessage.content);
 				pastMessages.push(message);
 			}
 		} catch (error: any) {
@@ -135,11 +132,15 @@ export default function Home() {
 			event.target.scrollHeight > 200 ? "scroll" : "hidden";
 	};
 
-	const resetConversation = () => {
+	const resetConversation = async () => {
 		const newID = uuid();
 		localStorage.setItem("conversationID", newID);
 		setConversationID(newID);
-		setMessages([]);
+		const systemMessageRes = await fetch("/api/system-message");
+		const systemMessageJSON = await systemMessageRes.json();
+		const systemMessage = new Message("system", systemMessageJSON.prompt);
+
+		setMessages([systemMessage]);
 	};
 
 	// Get initial messages
@@ -158,6 +159,11 @@ export default function Home() {
 				const newID = uuid();
 				localStorage.setItem("conversationID", newID);
 				setConversationID(newID);
+				const systemMessageRes = await fetch("/api/system-message");
+				const systemMessageJSON = await systemMessageRes.json();
+				const systemMessage = new Message("system", systemMessageJSON.prompt);
+
+				pastMessages.push(systemMessage);
 			}
 			setMessages(pastMessages);
 		};
@@ -191,9 +197,7 @@ export default function Home() {
 								</div>
 							</div>
 							{messages
-								.filter(
-									(message) => message.getSender() != "system"
-								)
+								.filter((message) => message.getSender() != "system")
 								.map((message, index) => (
 									<div key={index} className="w-full">
 										<div
@@ -202,37 +206,25 @@ export default function Home() {
 										>
 											{message.getSender() == "user" ? (
 												<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
-													<div>
-														You:{" "}
-														{message.getMessage()}
-													</div>
+													<div>You: {message.getMessage()}</div>
 												</div>
 											) : (
 												<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
 													<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
 														{isLoading &&
-														message.getMessage() ==
-															null &&
-														message.getError() ==
-															false ? (
-															<div className="loading">
-																Loading
-															</div>
-														) : message.getError() !=
-														  false ? (
+														message.getMessage() == null &&
+														message.getError() == false ? (
+															<div className="loading">Loading</div>
+														) : message.getError() != false ? (
 															<div
 																style={{
 																	color: "red",
 																}}
 															>
-																Error:{" "}
-																{message.getError()}
+																Error: {message.getError()}
 															</div>
 														) : (
-															<div>
-																Bot:{" "}
-																{message.getMessage()}
-															</div>
+															<div>Bot: {message.getMessage()}</div>
 														)}
 													</div>
 												</div>
