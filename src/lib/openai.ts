@@ -30,7 +30,7 @@ export async function sendMessage(
 			model: "gpt-3.5-turbo",
 			messages,
 			max_tokens: 256,
-			temperature: 0.5,
+			temperature: 0,
 		});
 
 		const responseMessage = completion.data.choices[0].message;
