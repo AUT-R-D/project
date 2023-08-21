@@ -37,5 +37,4 @@ export class Message {
         this.error = true;
         this.errorMessage = errorMessage;
     }
-
 }

@@ -1,5 +1,8 @@
 "use client";
 import { Message } from "@/types/message";
+import { faGear, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 const { uuid } = require("uuidv4");
 import { useEffect, useRef, useState } from "react";
 
@@ -14,19 +17,13 @@ export default function Home() {
 
 	const [isLoading, setIsLoading] = useState(false);
 
-	const [popupVisible, setPopupVisible] = useState(false);
-
-	function togglePopup() {
-		setPopupVisible(!popupVisible);
-	}
-
 	// Chat Box code
 
 	// Get initial messages
 	const getMessages = async (conversation_id: string) => {
 		const pastMessages = Array<Message>();
 		try {
-			const response = await fetch("http://localhost:5000/conversations", {
+			const response = await fetch("/api/conversations", {
 				method: "POST",
 				body: JSON.stringify({ conversation_id }),
 				headers: {
@@ -46,13 +43,19 @@ export default function Home() {
 
 			// Loop through the messages and add them to the array
 			for (const pastMessage of data) {
-				const message = new Message(pastMessage.sender, pastMessage.content);
+				const message = new Message(
+					pastMessage.role,
+					pastMessage.content
+				);
 				pastMessages.push(message);
 			}
 		} catch (error: any) {
-			console.log("Error getting past messages");
 			const message = new Message("bot", null);
-			message.setError(error.message);
+			if (error instanceof SyntaxError) {
+				message.setError("Error connecting to database");
+			} else {
+				message.setError(error.message);
+			}
 			pastMessages.push(message);
 		}
 		return pastMessages;
@@ -68,16 +71,23 @@ export default function Home() {
 
 		// Create message variables
 		const inputMessage = new Message("user", inputText);
-		const outputMessage = new Message("bot", null);
+		const outputMessage = new Message("assistant", null);
 
 		// Add messages to state
 		setMessages([...messages, inputMessage, outputMessage]);
 
 		try {
-			const response = await fetch("http://localhost:5000/message", {
+			const response = await fetch("/api/message", {
 				method: "POST",
 				body: JSON.stringify({
 					message: inputText,
+					// Send content of all messages
+					messages: messages.map((message) => {
+						return {
+							role: message.getSender(),
+							content: message.getMessage(),
+						};
+					}),
 					conversation_id: conversationID,
 				}),
 				headers: {
@@ -125,6 +135,13 @@ export default function Home() {
 			event.target.scrollHeight > 200 ? "scroll" : "hidden";
 	};
 
+	const resetConversation = () => {
+		const newID = uuid();
+		localStorage.setItem("conversationID", newID);
+		setConversationID(newID);
+		setMessages([]);
+	};
+
 	// Get initial messages
 	useEffect(() => {
 		// get conversationID from local storage
@@ -164,36 +181,65 @@ export default function Home() {
 				<div className="overflow-y-auto h-full w-full">
 					<div className="h-full dark:bg-gray-800">
 						<div className="flex flex-col items-center text-sm dark:bg-gray-800">
-							{messages.map((message, index) => (
-								<div key={index} className="w-full">
-									<div
-										key={index}
-										className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 dark:bg-gray-800"
-									>
-										{message.getSender() == "user" ? (
-											<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
-												<div>Input: {message.getMessage()}</div>
-											</div>
-										) : (
-											<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
-												<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
-													{isLoading &&
-													message.getMessage() == null &&
-													message.getError() == false ? (
-														<div className="loading">Loading</div>
-													) : message.getError() != false ? (
-														<div style={{ color: "red" }}>
-															Error: {message.getError()}
-														</div>
-													) : (
-														<div>{message.getMessage()}</div>
-													)}
-												</div>
-											</div>
-										)}
+							<div className="w-full">
+								<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 dark:bg-gray-800">
+									<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
+										<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
+											<div>Bot: How can I help you?</div>
+										</div>
 									</div>
 								</div>
-							))}
+							</div>
+							{messages
+								.filter(
+									(message) => message.getSender() != "system"
+								)
+								.map((message, index) => (
+									<div key={index} className="w-full">
+										<div
+											key={index}
+											className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 dark:bg-gray-800"
+										>
+											{message.getSender() == "user" ? (
+												<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
+													<div>
+														You:{" "}
+														{message.getMessage()}
+													</div>
+												</div>
+											) : (
+												<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
+													<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
+														{isLoading &&
+														message.getMessage() ==
+															null &&
+														message.getError() ==
+															false ? (
+															<div className="loading">
+																Loading
+															</div>
+														) : message.getError() !=
+														  false ? (
+															<div
+																style={{
+																	color: "red",
+																}}
+															>
+																Error:{" "}
+																{message.getError()}
+															</div>
+														) : (
+															<div>
+																Bot:{" "}
+																{message.getMessage()}
+															</div>
+														)}
+													</div>
+												</div>
+											)}
+										</div>
+									</div>
+								))}
 							<div
 								className="w-full h-24 md:h-32 flex-shrink-0"
 								ref={bottomRef}
@@ -208,7 +254,13 @@ export default function Home() {
 					onSubmit={handleSubmit}
 					className="stretch mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl"
 				>
-					<div className="relative flex h-full flex-1 md:flex-col">
+					<div className="relative flex h-full flex-1 md:flex-row">
+						<Link
+							href={"/settings"}
+							className="md:py-3 md:px-4 mr-2 rounded-md bg-slate-600 hover:bg-slate-400"
+						>
+							<FontAwesomeIcon icon={faGear} />
+						</Link>
 						<div className="flex flex-col w-full py-2 flex-grow md:py-3 md:pl-4 relative text-white bg-gray-700 rounded-md shadow-[0_0_15px_rgba(0,0,0,0.10)]">
 							<textarea
 								disabled={isLoading}
@@ -227,12 +279,20 @@ export default function Home() {
 							/>
 							<button
 								type="submit"
-								disabled={isLoading}
-								className="absolute p-1 rounded-md text-gray-500 bottom-1.5 md:bottom-2.5 hover:bg-gray-100 enabled:dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent right-1 md:right-2 disabled:opacity-40"
+								disabled={isLoading || inputText.length == 0}
+								aria-disabled={inputText.length == 0}
+								className="absolute p-1 rounded-md aria-disabled:text-gray-400 text-gray-300 bottom-1.5 md:bottom-2.5 hover:bg-gray-100 enabled:dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent right-1 md:right-2 disabled:opacity-40"
 							>
 								Submit
 							</button>
 						</div>
+						<button
+							type="reset"
+							onClick={resetConversation}
+							className="md:py-3 md:px-4 ml-2 rounded-md bg-slate-600 hover:bg-slate-400"
+						>
+							<FontAwesomeIcon icon={faTrash} />
+						</button>
 					</div>
 				</form>
 			</div>

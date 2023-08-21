@@ -1,4 +1,10 @@
 import "./globals.css";
+import { config, library } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+import { fas } from "@fortawesome/free-solid-svg-icons";
+
+config.autoAddCss = false;
+library.add(fas);
 
 export const metadata = {
 	title: "Create Next App",
@@ -12,9 +18,6 @@ export default function RootLayout({
 }) {
 	return (
 		<>
-			{/* <Head>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
-      </Head> */}
 			<html lang="en" className="h-full">
 				<body className="h-full">{children}</body>
 			</html>
