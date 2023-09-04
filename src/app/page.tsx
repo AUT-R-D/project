@@ -242,6 +242,21 @@ export default function Home() {
 			</div>
 
 			<div className="absolute bottom-0 left-0 w-full bg-white dark:bg-gray-800 pt-4">
+				<div className="bg-grey-800 grid grid-cols-3 mx-28">
+					<div className="bg-gray-600 p-8 h-36 mx-10 mb-8 row-span-3 rounded-lg">
+
+						<p className="text-slate-300">What is my </p>
+					</div> 
+					<div className="bg-gray-600 p-8 h-36 mx-10 mb-8 row-span-3 rounded-lg">
+
+						<p className="text-slate-300">What is my </p>
+					</div>
+					<div className="bg-gray-600 p-8 h-36 mx-10 mb-8 row-span-3 rounded-lg">
+
+						<p className="text-slate-300">What is my </p>
+					</div>
+				</div>
+				
 				<form
 					onSubmit={handleSubmit}
 					className="stretch mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl"
