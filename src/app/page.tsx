@@ -187,6 +187,9 @@ export default function Home() {
 				<div className="overflow-y-auto h-full w-full">
 					<div className="h-full dark:bg-gray-800">
 						<div className="flex flex-col items-center text-sm dark:bg-gray-800">
+						{
+							// Below is the frame where all messages are displayed for the user
+						}
 							<div className="w-full">
 								<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 dark:bg-gray-800">
 									<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
@@ -242,6 +245,10 @@ export default function Home() {
 			</div>
 
 			<div className="absolute bottom-0 left-0 w-full bg-white dark:bg-gray-800 pt-4">
+
+				{
+					// Below are the 3 prompt suggestion boxes for the user
+				}
 				<div className="bg-grey-800 grid grid-cols-3 mx-28">
 					<div className="bg-gray-600 p-8 h-36 mx-10 mb-8 row-span-3 rounded-lg">
 
@@ -257,6 +264,9 @@ export default function Home() {
 					</div>
 				</div>
 				
+				{
+					// Below is the submit form and input bar for the user
+				}
 				<form
 					onSubmit={handleSubmit}
 					className="stretch mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl"
