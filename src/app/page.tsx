@@ -5,6 +5,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 const { uuid } = require("uuidv4");
 import { useEffect, useRef, useState } from "react";
+import { Variable } from "@/types/variable";
+import { stringify } from "querystring";
+
+type Settings = {
+	chatbot: string;
+	scenario: string;
+	slang: number;
+	variables: Variable[];
+};
 
 export default function Home() {
 	const [conversationID, setConversationID] = useState<string>("");
@@ -57,6 +66,24 @@ export default function Home() {
 		}
 
 		return pastMessages;
+	};
+
+	// assigns variable name to prompt example
+	const assignPrompt = function (element: string, name: String) {
+		const promtpDiv = document.getElementById(element);
+
+		if (promtpDiv) {
+			var pTag = promtpDiv.querySelector('p')!;
+			if (pTag) {
+				var text = pTag.textContent;
+
+				if (text === "") {
+					promtpDiv.querySelector('p')!.textContent = "What is my " + name + "?";
+				}
+			}
+		}
+		
+		
 	};
 
 	// Handle form submission
@@ -189,14 +216,58 @@ export default function Home() {
 		const eg3 = document.getElementById("eg3")!;
 	  
 		eg1.addEventListener("click", () => {
-		  setInputText("What is my ");
+		  setInputText(eg1.querySelector('p')!.textContent!);
 		});
 		eg2.addEventListener("click", () => {
-		  setInputText("What is my ");
+			setInputText(eg2.querySelector('p')!.textContent!);
 		});
 		eg3.addEventListener("click", () => {
-		  setInputText("What is my ");
+			setInputText(eg3.querySelector('p')!.textContent!);
 		});
+
+		// get settings variables...
+		const getVariables = async () => {
+			const response = await fetch("/api/settings", {
+				method: "GET",
+			});
+
+			const data = await response.json();
+
+			const settings: Settings = data;
+
+			const settingsVariables = Array<Variable>();
+
+			for (const variable of settings.variables || []) {
+				const newVariable = new Variable(variable.name, variable.value);
+				settingsVariables.push(newVariable);
+			}
+
+			// set settings variables to prompt examples...
+			let counter = 0;
+			for (const variable of settingsVariables || []) {
+				counter++;
+				let divId = "eg" + String(counter);
+				assignPrompt(divId, variable.getName());
+				
+				
+			}
+
+			console.log(counter);
+			while (counter != 3) {
+				counter++;
+				let divId = "eg" + String(counter);
+				assignPrompt(divId, "...");
+				
+			}
+
+			
+		}
+		getVariables();
+
+
+
+
+
 	}, []); // Empty dependency array means this code runs once after rendering.
 
 	// Scroll to bottom of chat box
@@ -281,15 +352,15 @@ export default function Home() {
 				<div id="promptEgs" className="bg-grey-800 grid grid-cols-3 mx-28 gap-x-3">
 					<div id="eg1" className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out">
 
-						<p className="text-slate-300">What is my </p>
+						<p className="text-slate-300"></p>
 					</div> 
 					<div id="eg2" className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out">
 
-						<p className="text-slate-300">What is my </p>
+						<p className="text-slate-300"></p>
 					</div>
 					<div id="eg3" className="bg-gray-600 p-8 h-36 mx-2 mb-8 row-span-3 col-span-1 rounded-lg hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out">
 
-						<p className="text-slate-300">What is my </p>
+						<p className="text-slate-300"></p>
 					</div>
 				</div>
 				
