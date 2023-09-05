@@ -55,12 +55,20 @@ export default function Home() {
 			}
 			pastMessages.push(message);
 		}
+
 		return pastMessages;
 	};
 
 	// Handle form submission
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
+
+
+		// Setting example prompt messages to be hidden
+		const promptEgs = document.getElementById("promptEgs")!;
+		console.log("Past Message Length: "+messages.length);
+		promptEgs.style.display = 'none';
+		
 		if (isLoading) return;
 
 		setIsLoading(true);
@@ -133,6 +141,7 @@ export default function Home() {
 	};
 
 	const resetConversation = async () => {
+		setInputText("");
 		const newID = uuid();
 		localStorage.setItem("conversationID", newID);
 		setConversationID(newID);
@@ -141,6 +150,11 @@ export default function Home() {
 		const systemMessage = new Message("system", systemMessageJSON.prompt);
 
 		setMessages([systemMessage]);
+
+		// make example prompts visible again
+		const promptEgs = document.getElementById("promptEgs")!;
+		promptEgs.style.display = 'grid';
+
 	};
 
 	// Get initial messages
@@ -168,7 +182,22 @@ export default function Home() {
 			setMessages(pastMessages);
 		};
 		getInitialMessages();
-	}, []);
+
+		// Add the event listeners here
+		const eg1 = document.getElementById("eg1")!;
+		const eg2 = document.getElementById("eg2")!;
+		const eg3 = document.getElementById("eg3")!;
+	  
+		eg1.addEventListener("click", () => {
+		  setInputText("What is my ");
+		});
+		eg2.addEventListener("click", () => {
+		  setInputText("What is my ");
+		});
+		eg3.addEventListener("click", () => {
+		  setInputText("What is my ");
+		});
+	}, []); // Empty dependency array means this code runs once after rendering.
 
 	// Scroll to bottom of chat box
 	useEffect(() => {
@@ -249,16 +278,16 @@ export default function Home() {
 				{
 					// Below are the 3 prompt suggestion boxes for the user
 				}
-				<div className="bg-grey-800 grid grid-cols-3 mx-28">
-					<div className="bg-gray-600 p-8 h-36 mx-10 mb-8 row-span-3 rounded-lg">
+				<div id="promptEgs" className="bg-grey-800 grid grid-cols-3 mx-28 gap-x-3">
+					<div id="eg1" className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out">
 
 						<p className="text-slate-300">What is my </p>
 					</div> 
-					<div className="bg-gray-600 p-8 h-36 mx-10 mb-8 row-span-3 rounded-lg">
+					<div id="eg2" className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out">
 
 						<p className="text-slate-300">What is my </p>
 					</div>
-					<div className="bg-gray-600 p-8 h-36 mx-10 mb-8 row-span-3 rounded-lg">
+					<div id="eg3" className="bg-gray-600 p-8 h-36 mx-2 mb-8 row-span-3 col-span-1 rounded-lg hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out">
 
 						<p className="text-slate-300">What is my </p>
 					</div>
