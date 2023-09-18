@@ -6,7 +6,6 @@ import Link from "next/link";
 const { uuid } = require("uuidv4");
 import { useEffect, useRef, useState } from "react";
 import { Variable } from "@/types/variable";
-import { stringify } from "querystring";
 
 type Settings = {
 	chatbot: string;
@@ -25,6 +24,8 @@ export default function Home() {
 	const [messages, setMessages] = useState<Message[]>([]);
 
 	const [isLoading, setIsLoading] = useState(false);
+
+	const [chatbot, setChatbot] = useState<string>("");
 
 	// Chat Box code
 
@@ -73,29 +74,27 @@ export default function Home() {
 		const promtpDiv = document.getElementById(element);
 
 		if (promtpDiv) {
-			var pTag = promtpDiv.querySelector('p')!;
+			var pTag = promtpDiv.querySelector("p")!;
 			if (pTag) {
 				var text = pTag.textContent;
 
 				if (text === "") {
-					promtpDiv.querySelector('p')!.textContent = "What is my " + name + "?";
+					promtpDiv.querySelector("p")!.textContent =
+						"What is my " + name + "?";
 				}
 			}
 		}
-		
-		
 	};
 
 	// Handle form submission
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-
 		// Setting example prompt messages to be hidden
 		const promptEgs = document.getElementById("promptEgs")!;
-		console.log("Past Message Length: "+messages.length);
-		promptEgs.style.display = 'none';
-		
+		console.log("Past Message Length: " + messages.length);
+		promptEgs.style.display = "none";
+
 		if (isLoading) return;
 
 		setIsLoading(true);
@@ -121,6 +120,7 @@ export default function Home() {
 						};
 					}),
 					conversation_id: conversationID,
+					model: chatbot,
 				}),
 				headers: {
 					"Content-Type": "application/json",
@@ -180,8 +180,7 @@ export default function Home() {
 
 		// make example prompts visible again
 		const promptEgs = document.getElementById("promptEgs")!;
-		promptEgs.style.display = 'grid';
-
+		promptEgs.style.display = "grid";
 	};
 
 	// Get initial messages
@@ -214,15 +213,15 @@ export default function Home() {
 		const eg1 = document.getElementById("eg1")!;
 		const eg2 = document.getElementById("eg2")!;
 		const eg3 = document.getElementById("eg3")!;
-	  
+
 		eg1.addEventListener("click", () => {
-		  setInputText(eg1.querySelector('p')!.textContent!);
+			setInputText(eg1.querySelector("p")!.textContent!);
 		});
 		eg2.addEventListener("click", () => {
-			setInputText(eg2.querySelector('p')!.textContent!);
+			setInputText(eg2.querySelector("p")!.textContent!);
 		});
 		eg3.addEventListener("click", () => {
-			setInputText(eg3.querySelector('p')!.textContent!);
+			setInputText(eg3.querySelector("p")!.textContent!);
 		});
 
 		// get settings variables...
@@ -234,6 +233,8 @@ export default function Home() {
 			const data = await response.json();
 
 			const settings: Settings = data;
+
+			setChatbot(settings.chatbot);
 
 			const settingsVariables = Array<Variable>();
 
@@ -248,8 +249,6 @@ export default function Home() {
 				counter++;
 				let divId = "eg" + String(counter);
 				assignPrompt(divId, variable.getName());
-				
-				
 			}
 
 			console.log(counter);
@@ -257,17 +256,9 @@ export default function Home() {
 				counter++;
 				let divId = "eg" + String(counter);
 				assignPrompt(divId, "...");
-				
 			}
-
-			
-		}
+		};
 		getVariables();
-
-
-
-
-
 	}, []); // Empty dependency array means this code runs once after rendering.
 
 	// Scroll to bottom of chat box
@@ -287,9 +278,9 @@ export default function Home() {
 				<div className="overflow-y-auto h-full w-full">
 					<div className="h-full dark:bg-gray-800">
 						<div className="flex flex-col items-center text-sm dark:bg-gray-800">
-						{
-							// Below is the frame where all messages are displayed for the user
-						}
+							{
+								// Below is the frame where all messages are displayed for the user
+							}
 							<div className="w-full">
 								<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 dark:bg-gray-800">
 									<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
@@ -345,25 +336,33 @@ export default function Home() {
 			</div>
 
 			<div className="absolute bottom-0 left-0 w-full bg-white dark:bg-gray-800 pt-4">
-
 				{
 					// Below are the 3 prompt suggestion boxes for the user
 				}
-				<div id="promptEgs" className="bg-grey-800 grid grid-cols-3 mx-28 gap-x-3">
-					<div id="eg1" className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out">
-
-						<p className="text-slate-300"></p>
-					</div> 
-					<div id="eg2" className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out">
-
+				<div
+					id="promptEgs"
+					className="bg-grey-800 grid grid-cols-3 mx-28 gap-x-3"
+				>
+					<div
+						id="eg1"
+						className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out"
+					>
 						<p className="text-slate-300"></p>
 					</div>
-					<div id="eg3" className="bg-gray-600 p-8 h-36 mx-2 mb-8 row-span-3 col-span-1 rounded-lg hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out">
-
+					<div
+						id="eg2"
+						className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out"
+					>
+						<p className="text-slate-300"></p>
+					</div>
+					<div
+						id="eg3"
+						className="bg-gray-600 p-8 h-36 mx-2 mb-8 row-span-3 col-span-1 rounded-lg hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out"
+					>
 						<p className="text-slate-300"></p>
 					</div>
 				</div>
-				
+
 				{
 					// Below is the submit form and input bar for the user
 				}
