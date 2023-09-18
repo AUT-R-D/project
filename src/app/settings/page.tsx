@@ -15,10 +15,14 @@ type Settings = {
 export default function Home() {
 	const router = useRouter();
 	const [variables, setVariables] = useState(Array<Variable>()); // setting array of variables as state
-	const [scenario, setScenario] = useState("plane"); // setting scenario as state
-	const [chatbot, setChatbot] = useState("chat-gpt"); // setting chatbot as state
-	const [slang, setSlang] = useState(5); // setting slang as state
-	const [saved, setSaved] = useState(true); // setting saved as state
+	const [scenario, setScenario] = useState("plane"); // scenario setting
+	const [chatbot, setChatbot] = useState("chat-gpt"); // chatbot setting
+	const [chatbotChanged, setChatbotChanged] = useState<{
+		old: string;
+		new: null | string;
+	}>({ old: chatbot, new: null }); // Check for if the chat bot has been changed
+	const [slang, setSlang] = useState(5); // slang setting
+	const [saved, setSaved] = useState(true); // saved setting
 
 	function addPlus() {
 		if (saved) setSaved(false);
@@ -89,7 +93,7 @@ export default function Home() {
 	}, []);
 
 	return (
-		<div className="h-full bg-gray-500 bg-opacity-50 flex items-center justify-center">
+		<div className="flex items-center justify-center">
 			<div className="w-1/3 bg-white p-8 rounded-3xl shadow-md text-center justify-center">
 				<h2 className="text-xl text-black font-bold mb-4">Settings</h2>
 
@@ -112,9 +116,16 @@ export default function Home() {
 						onChange={(event) => {
 							setSaved(false);
 							setChatbot(event.target.value);
+							setChatbotChanged({
+								old: chatbotChanged.old,
+								new: event.target.value,
+							});
+
+							console.log(chatbotChanged);
 						}}
 					>
-						<option value="chat-gpt">Chat GTP</option>
+						<option value="gpt-3.5">Chat GTP 3.5</option>
+						<option value="gpt-4">Chat GTP 4</option>
 						<option value="dialog">Dialog Flow</option>
 						<option value="wit">Wit.ai</option>
 						<option value="lex">Amazon Lex</option>
@@ -139,10 +150,7 @@ export default function Home() {
 							} else if (event.target.value == "") {
 								event.target.value = "0";
 							} else if (event.target.value.length > 2) {
-								event.target.value = event.target.value.slice(
-									0,
-									2
-								);
+								event.target.value = event.target.value.slice(0, 2);
 							}
 							setSaved(false);
 							setSlang(parseInt(event.target.value));
@@ -206,13 +214,17 @@ export default function Home() {
 							title="Add variable"
 							onClick={addPlus}
 						>
-							<FontAwesomeIcon
-								icon={faPlus}
-								className="text-white mx-auto"
-							/>
+							<FontAwesomeIcon icon={faPlus} className="text-white mx-auto" />
 						</button>
 					</div>
 				</div>
+				{chatbotChanged.new != null &&
+					chatbotChanged.new != chatbotChanged.old && (
+						<div className="text-black bg-red-500 p-4 mt-5 rounded-lg">
+							Notice about changing chat bot goes here. Tell user that
+							conversation will be reset.
+						</div>
+					)}
 
 				<button
 					className="block mt-4 bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 disabled:hover:bg-gray-400 text-white font-bold py-2 px-4 rounded mx-auto"
@@ -229,6 +241,7 @@ export default function Home() {
 							body: JSON.stringify(settings),
 						});
 						setSaved(true);
+						setChatbotChanged({ old: chatbot, new: null });
 					}}
 					disabled={saved}
 				>

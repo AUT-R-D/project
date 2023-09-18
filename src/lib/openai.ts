@@ -11,6 +11,12 @@ const config = new Configuration({
 	organization: "org-JsRvjNdTqRuBJYUyKLXu9y3w",
 });
 
+
+const models: {[key: string]: string} = {
+	"gpt-3.5": "gpt-3.5-turbo",
+	"gpt-4": "gpt-4"
+}
+
 const openai = new OpenAIApi(config);
 
 // Goal
@@ -20,14 +26,15 @@ const openai = new OpenAIApi(config);
 
 export async function sendMessage(
 	message: string,
-	messages: ChatCompletionRequestMessage[]
+	messages: ChatCompletionRequestMessage[],
+	model: string
 ) {
 	try {
 		//messages.push({ role: "user", content: prompt + message });
 		messages.push({ role: "user", content: message });
 
 		const completion = await openai.createChatCompletion({
-			model: "gpt-3.5-turbo",
+			model: models[model],
 			messages,
 			max_tokens: 256,
 			temperature: 0,

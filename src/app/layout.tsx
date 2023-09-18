@@ -19,7 +19,7 @@ export default function RootLayout({
 	return (
 		<>
 			<html lang="en" className="h-full">
-				<body className="h-full">{children}</body>
+				<body className="h-full bg-gray-500 bg-opacity-50">{children}</body>
 			</html>
 		</>
 	);

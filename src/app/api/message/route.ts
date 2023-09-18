@@ -25,13 +25,24 @@ export async function POST(request: NextRequest) {
 		);
 	}
 
+	const model = res.model;
+
+	if (!model) {
+		return NextResponse.json(
+			{
+				error: "No model provided",
+			},
+			{ status: 400 }
+		);
+	}
+
 	const client = await clientPromise;
 	const db = client.db("info-flow");
 	const conversations = db.collection("conversations");
 
 	try {
 		// Commented out for now since no access to OpenAI API
-		const rawResponse = await sendMessage(message, messages);
+		const rawResponse = await sendMessage(message, messages, model);
 
 		const response = rawResponse!.content;
 		//const response = `You're message was: ${message}`
