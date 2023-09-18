@@ -52,6 +52,16 @@ export default function Home() {
 		setVariables(newVariables);
 	}
 
+	function saveChatbot() {
+		if (
+			chatbotChanged.new != null &&
+			chatbotChanged.new != chatbotChanged.old
+		) {
+			localStorage.removeItem("conversationID");
+			setChatbotChanged({ old: chatbot, new: null });
+		}
+	}
+
 	// Get initial messages
 	useEffect(() => {
 		const getVariables = async () => {
@@ -241,7 +251,7 @@ export default function Home() {
 							body: JSON.stringify(settings),
 						});
 						setSaved(true);
-						setChatbotChanged({ old: chatbot, new: null });
+						saveChatbot();
 					}}
 					disabled={saved}
 				>
