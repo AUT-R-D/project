@@ -97,6 +97,7 @@ export default function Home() {
 			setScenario(settings.scenario);
 			setChatbot(settings.chatbot);
 			setVariables(newVariables);
+			setSlang(settings.slang);
 		};
 
 		getVariables();
