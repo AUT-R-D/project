@@ -11,7 +11,12 @@ type Settings = {
 	chatbot: string;
 	scenario: string;
 	slang: number;
-	variables: Variable[];
+	variables: {
+		[scenario: string]: Variable[];
+		phone: Variable[];
+		plane: Variable[];
+		glasses: Variable[];
+	};
 };
 
 export default function Home() {
@@ -92,7 +97,6 @@ export default function Home() {
 
 		// Setting example prompt messages to be hidden
 		const promptEgs = document.getElementById("promptEgs")!;
-		console.log("Past Message Length: " + messages.length);
 		promptEgs.style.display = "none";
 
 		if (isLoading) return;
@@ -238,7 +242,7 @@ export default function Home() {
 
 			const settingsVariables = Array<Variable>();
 
-			for (const variable of settings.variables || []) {
+			for (const variable of settings.variables[settings.scenario] || []) {
 				const newVariable = new Variable(variable.name, variable.value);
 				settingsVariables.push(newVariable);
 			}
@@ -251,7 +255,6 @@ export default function Home() {
 				assignPrompt(divId, variable.getName());
 			}
 
-			console.log(counter);
 			while (counter != 3) {
 				counter++;
 				let divId = "eg" + String(counter);

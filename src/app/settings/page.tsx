@@ -9,14 +9,23 @@ type Settings = {
 	chatbot: string;
 	scenario: string;
 	slang: number;
-	variables: Variable[];
+	variables: {
+		[scenario: string]: Variable[];
+		phone: Variable[];
+		plane: Variable[];
+		glasses: Variable[];
+	};
 };
 
 export default function Home() {
 	const router = useRouter();
-	const [variables, setVariables] = useState(Array<Variable>()); // setting array of variables as state
+	const [variables, setVariables] = useState<Settings["variables"]>({
+		phone: Array<Variable>(),
+		plane: Array<Variable>(),
+		glasses: Array<Variable>(),
+	}); // setting array of variables as state
 	const [scenario, setScenario] = useState("plane"); // scenario setting
-	const [chatbot, setChatbot] = useState("chat-gpt"); // chatbot setting
+	const [chatbot, setChatbot] = useState("gpt-4"); // chatbot setting
 	const [chatbotChanged, setChatbotChanged] = useState<{
 		old: string;
 		new: null | string;
@@ -30,15 +39,17 @@ export default function Home() {
 			document.getElementById("variableName") as HTMLInputElement
 		).value;
 
+		// Create new variable and add to the array for the scenario
+		const newVariables = variables;
 		const newVariable = new Variable(newVariableName, "");
-
-		setVariables([...variables, newVariable]);
+		newVariables[scenario].push(newVariable);
+		setVariables(newVariables);
 	}
 
 	function removeVariable(index: number) {
 		if (saved) setSaved(false);
-		const newVariables = [...variables];
-		newVariables.splice(index, 1);
+		const newVariables = variables;
+		newVariables[scenario].splice(index, 1);
 		setVariables(newVariables);
 	}
 
@@ -47,8 +58,8 @@ export default function Home() {
 		event: ChangeEvent<HTMLInputElement>
 	) {
 		if (saved) setSaved(false);
-		const newVariables = [...variables];
-		newVariables[index].setValue(event.target.value);
+		const newVariables = variables;
+		newVariables[scenario][index].setValue(event.target.value);
 		setVariables(newVariables);
 	}
 
@@ -87,11 +98,17 @@ export default function Home() {
 
 			const settings: Settings = data;
 
-			const newVariables = Array<Variable>();
+			const newVariables: Settings["variables"] = {
+				phone: Array<Variable>(),
+				plane: Array<Variable>(),
+				glasses: Array<Variable>(),
+			};
 
-			for (const variable of settings.variables || []) {
-				const newVariable = new Variable(variable.name, variable.value);
-				newVariables.push(newVariable);
+			for (const scenario in settings.variables) {
+				for (const variable of settings.variables[scenario]) {
+					const newVariable = new Variable(variable.name, variable.value);
+					newVariables[scenario].push(newVariable);
+				}
 			}
 
 			setScenario(settings.scenario);
@@ -130,15 +147,10 @@ export default function Home() {
 								old: chatbotChanged.old,
 								new: event.target.value,
 							});
-
-							console.log(chatbotChanged);
 						}}
 					>
 						<option value="gpt-3.5">Chat GTP 3.5</option>
 						<option value="gpt-4">Chat GTP 4</option>
-						<option value="dialog">Dialog Flow</option>
-						<option value="wit">Wit.ai</option>
-						<option value="lex">Amazon Lex</option>
 					</select>
 				</div>
 				<div>
@@ -168,7 +180,7 @@ export default function Home() {
 					/>
 				</div>
 
-				{variables.map((variable, index) => {
+				{variables[scenario].map((variable, index) => {
 					return (
 						<div id={`var-${index}`} className="pt-3" key={index}>
 							<div className="flex flex-row justify-center items-center space-x-1 mb-2">
@@ -231,8 +243,7 @@ export default function Home() {
 				{chatbotChanged.new != null &&
 					chatbotChanged.new != chatbotChanged.old && (
 						<div className="text-black bg-red-500 p-4 mt-5 rounded-lg">
-							Notice about changing chat bot goes here. Tell user that
-							conversation will be reset.
+							Changing the chatbot setting will reset the conversation.
 						</div>
 					)}
 
