@@ -95,10 +95,6 @@ export default function Home() {
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-		// Setting example prompt messages to be hidden
-		const promptEgs = document.getElementById("promptEgs")!;
-		promptEgs.style.display = "none";
-
 		if (isLoading) return;
 
 		setIsLoading(true);
@@ -181,10 +177,6 @@ export default function Home() {
 		const systemMessage = new Message("system", systemMessageJSON.prompt);
 
 		setMessages([systemMessage]);
-
-		// make example prompts visible again
-		const promptEgs = document.getElementById("promptEgs")!;
-		promptEgs.style.display = "grid";
 	};
 
 	// Get initial messages
@@ -212,21 +204,6 @@ export default function Home() {
 			setMessages(pastMessages);
 		};
 		getInitialMessages();
-
-		// Add the event listeners here
-		const eg1 = document.getElementById("eg1")!;
-		const eg2 = document.getElementById("eg2")!;
-		const eg3 = document.getElementById("eg3")!;
-
-		eg1.addEventListener("click", () => {
-			setInputText(eg1.querySelector("p")!.textContent!);
-		});
-		eg2.addEventListener("click", () => {
-			setInputText(eg2.querySelector("p")!.textContent!);
-		});
-		eg3.addEventListener("click", () => {
-			setInputText(eg3.querySelector("p")!.textContent!);
-		});
 
 		// get settings variables...
 		const getVariables = async () => {
@@ -342,7 +319,8 @@ export default function Home() {
 				{
 					// Below are the 3 prompt suggestion boxes for the user
 				}
-				<div
+				{messages.length < 2 && (
+					<div
 					id="promptEgs"
 					className="bg-grey-800 grid grid-cols-3 mx-28 gap-x-3"
 				>
@@ -350,21 +328,28 @@ export default function Home() {
 						id="eg1"
 						className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out"
 					>
-						<p className="text-slate-300"></p>
+						<p className="text-slate-300" onClick={(event) => {
+							setInputText(event.currentTarget.textContent!);
+						}}></p>
 					</div>
 					<div
 						id="eg2"
 						className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out"
 					>
-						<p className="text-slate-300"></p>
+						<p className="text-slate-300" onClick={(event) => {
+							setInputText(event.currentTarget.textContent!);
+						}}></p>
 					</div>
 					<div
 						id="eg3"
 						className="bg-gray-600 p-8 h-36 mx-2 mb-8 row-span-3 col-span-1 rounded-lg hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out"
 					>
-						<p className="text-slate-300"></p>
+						<p className="text-slate-300" onClick={(event) => {
+							setInputText(event.currentTarget.textContent!);
+						}}></p>
 					</div>
 				</div>
+				)}
 
 				{
 					// Below is the submit form and input bar for the user
