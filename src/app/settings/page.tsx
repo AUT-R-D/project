@@ -35,22 +35,27 @@ export default function Home() {
 
 	function addPlus() {
 		if (saved) setSaved(false);
-		const newVariableName = (
-			document.getElementById("variableName") as HTMLInputElement
-		).value;
+		const input = document.getElementById("variableName") as HTMLInputElement;
+
+		if (input.value == "") return;
 
 		// Create new variable and add to the array for the scenario
-		const newVariables = variables;
-		const newVariable = new Variable(newVariableName, "");
-		newVariables[scenario].push(newVariable);
-		setVariables(newVariables);
+		const newVariable = new Variable(input.value, "");
+		setVariables((prev) => {
+			const updated = { ...prev };
+			updated[scenario].push(newVariable);
+			return updated;
+		});
+		input.value = "";
 	}
 
 	function removeVariable(index: number) {
 		if (saved) setSaved(false);
-		const newVariables = variables;
-		newVariables[scenario].splice(index, 1);
-		setVariables(newVariables);
+		setVariables((prev) => {
+			const updated = { ...prev };
+			updated[scenario].splice(index, 1);
+			return updated;
+		});
 	}
 
 	function updateVariableValue(
@@ -58,9 +63,12 @@ export default function Home() {
 		event: ChangeEvent<HTMLInputElement>
 	) {
 		if (saved) setSaved(false);
-		const newVariables = variables;
-		newVariables[scenario][index].setValue(event.target.value);
-		setVariables(newVariables);
+		
+		setVariables((prev) => {
+			const updated = { ...prev };
+			updated[scenario][index].setValue(event.target.value);
+			return updated;
+		});
 	}
 
 	function saveChatbot() {
@@ -115,6 +123,7 @@ export default function Home() {
 			setChatbot(settings.chatbot);
 			setVariables(newVariables);
 			setSlang(settings.slang);
+			setChatbotChanged({ old: settings.chatbot, new: null });
 		};
 
 		getVariables();
