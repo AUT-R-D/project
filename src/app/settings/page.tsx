@@ -35,7 +35,9 @@ export default function Home() {
 
 	function addPlus() {
 		if (saved) setSaved(false);
-		const input = document.getElementById("variableName") as HTMLInputElement;
+		const input = document.getElementById(
+			"variableName"
+		) as HTMLInputElement;
 
 		if (input.value == "") return;
 
@@ -49,6 +51,7 @@ export default function Home() {
 		input.value = "";
 	}
 
+	// Remove variable from array
 	function removeVariable(index: number) {
 		if (saved) setSaved(false);
 		setVariables((prev) => {
@@ -58,12 +61,13 @@ export default function Home() {
 		});
 	}
 
+	// Update variable value
 	function updateVariableValue(
 		index: number,
 		event: ChangeEvent<HTMLInputElement>
 	) {
 		if (saved) setSaved(false);
-		
+
 		setVariables((prev) => {
 			const updated = { ...prev };
 			updated[scenario][index].setValue(event.target.value);
@@ -71,6 +75,7 @@ export default function Home() {
 		});
 	}
 
+	// Save chatbot setting and remove conversationID from local storage
 	function saveChatbot() {
 		if (
 			chatbotChanged.new != null &&
@@ -90,6 +95,7 @@ export default function Home() {
 
 			const data = await response.json();
 
+			// If there is an error, create new settings
 			if (data.error) {
 				const settings: Settings = {
 					chatbot,
@@ -112,13 +118,18 @@ export default function Home() {
 				glasses: Array<Variable>(),
 			};
 
+			// Add variables to each scenario
 			for (const scenario in settings.variables) {
 				for (const variable of settings.variables[scenario]) {
-					const newVariable = new Variable(variable.name, variable.value);
+					const newVariable = new Variable(
+						variable.name,
+						variable.value
+					);
 					newVariables[scenario].push(newVariable);
 				}
 			}
 
+			// Set settings in state
 			setScenario(settings.scenario);
 			setChatbot(settings.chatbot);
 			setVariables(newVariables);
@@ -127,7 +138,7 @@ export default function Home() {
 		};
 
 		getVariables();
-	}, []);
+	});
 
 	return (
 		<div className="flex items-center justify-center">
@@ -135,6 +146,7 @@ export default function Home() {
 				<h2 className="text-xl text-black font-bold mb-4">Settings</h2>
 
 				<div className="flex space-x-2 justify-center">
+					{/* Scenario select */}
 					<select
 						className="rounded-lg p-2"
 						value={scenario}
@@ -147,6 +159,7 @@ export default function Home() {
 						<option value="plane">Plane</option>
 						<option value="glasses">Glasses</option>
 					</select>
+					{/* Chatbot select */}
 					<select
 						className="rounded-lg p-2"
 						value={chatbot}
@@ -164,6 +177,7 @@ export default function Home() {
 					</select>
 				</div>
 				<div>
+					{/* Slang Input */}
 					<label className="block text-gray-700 font-bold text-lg pt-3">
 						Slang
 					</label>
@@ -182,7 +196,10 @@ export default function Home() {
 							} else if (event.target.value == "") {
 								event.target.value = "0";
 							} else if (event.target.value.length > 2) {
-								event.target.value = event.target.value.slice(0, 2);
+								event.target.value = event.target.value.slice(
+									0,
+									2
+								);
 							}
 							setSaved(false);
 							setSlang(parseInt(event.target.value));
@@ -190,10 +207,12 @@ export default function Home() {
 					/>
 				</div>
 
+				{/* Variables */}
 				{variables[scenario].map((variable, index) => {
 					return (
 						<div id={`var-${index}`} className="pt-3" key={index}>
 							<div className="flex flex-row justify-center items-center space-x-1 mb-2">
+								{/* Variable Name */}
 								<label
 									htmlFor={`input-${index}`}
 									className="block text-gray-700 font-bold text-lg"
@@ -201,6 +220,7 @@ export default function Home() {
 								>
 									{variable.getName()}
 								</label>
+								{/* Remove variable button */}
 								<button
 									className="flex w-5 h-5 rounded bg-black items-center"
 									id={`remove-${index}`}
@@ -216,6 +236,7 @@ export default function Home() {
 								</button>
 							</div>
 
+							{/* Variable Value */}
 							<input
 								id={`input-${index}`}
 								type="text"
@@ -229,6 +250,7 @@ export default function Home() {
 					);
 				})}
 
+				{/* Add variable */}
 				<div className="mt-5">
 					<p className="text-black font-semibold text-lg">
 						Create new variable
@@ -246,20 +268,27 @@ export default function Home() {
 							title="Add variable"
 							onClick={addPlus}
 						>
-							<FontAwesomeIcon icon={faPlus} className="text-white mx-auto" />
+							<FontAwesomeIcon
+								icon={faPlus}
+								className="text-white mx-auto"
+							/>
 						</button>
 					</div>
 				</div>
+				
+				{/* Warning about changing chatbot */}
 				{chatbotChanged.new != null &&
 					chatbotChanged.new != chatbotChanged.old && (
 						<div className="text-black bg-red-500 p-4 mt-5 rounded-lg">
-							Changing the chatbot setting will reset the conversation.
+							Changing the chatbot setting will reset the
+							conversation.
 						</div>
 					)}
 
+				{/* Save and discard buttons */}
 				<button
 					className="block mt-4 bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 disabled:hover:bg-gray-400 text-white font-bold py-2 px-4 rounded mx-auto"
-					onClick={async (event) => {
+					onClick={async () => {
 						const settings: Settings = {
 							chatbot,
 							scenario,

@@ -19,6 +19,7 @@ export async function GET() {
         "Below are the defined queries and the required information for that query, remember not to tell me what variables are available before I query for one:",
       ];
     
+      /* Add variables */
       for (const variable of Object.values(settings.variables[settings.scenario]) as {
         name: string;
         value: string;

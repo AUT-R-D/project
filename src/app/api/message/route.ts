@@ -2,6 +2,11 @@ import clientPromise from "@/lib/mongodb";
 import { sendMessage } from "@/lib/openai";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Extracts JSON from a string
+ * @param str String to extract JSON from
+ * @returns JSON object if found, null otherwise
+ */
 function extractJSON(str: string) {
 	let firstOpen = 0;
 	let firstClose;
@@ -24,6 +29,7 @@ function extractJSON(str: string) {
 	} while (firstOpen != -1);
 }
 
+/* Send message to OpenAI API */
 export async function POST(request: NextRequest) {
 	const res = await request.json();
 
@@ -64,9 +70,10 @@ export async function POST(request: NextRequest) {
 	const userData = db.collection("user-data");
 
 	try {
-		// Commented out for now since no access to OpenAI API
+		// Send the message to the OpenAI API
 		const rawResponse = await sendMessage(message, messages, model);
 
+		// If there is no response from the API, return an error
 		if (!rawResponse) {
 			return NextResponse.json(
 				{ error: "No response from Chatbot" },
@@ -86,9 +93,8 @@ export async function POST(request: NextRequest) {
 		// Extract the JSON from the response
 		const json = extractJSON(response);
 
+		// If there is JSON, save it to the database
 		if (json) {
-			console.log("JSON Found in response")
-
 			await userData.updateOne(
 				{ conversation_id: conversation_id },
 				{ $set: { data: json } },
@@ -99,6 +105,7 @@ export async function POST(request: NextRequest) {
 		// Add the response to the messages array
 		messages.push({ role: "assistant", content: response });
 
+		// Save the messages to the database
 		await conversations.updateOne(
 			{ conversation_id: conversation_id },
 			{ $set: { messages } },
