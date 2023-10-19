@@ -11,28 +11,40 @@ const config = new Configuration({
 	organization: "org-JsRvjNdTqRuBJYUyKLXu9y3w",
 });
 
+
+const models: {[key: string]: string} = {
+	"gpt-3.5": "gpt-3.5-turbo",
+	"gpt-4": "gpt-4"
+}
+
 const openai = new OpenAIApi(config);
 
-// Goal
-// 1 - Ensure prompt only occurs once per conversation (at the start)
-// 2 - To use user-set variables within the prompt below (Type of company, slang and variables).
-// 3 - To have all key information from user be saved into our mongo DB.
-
+/**
+ * Sends a message to the OpenAI API and returns the response
+ * @param message The message to send
+ * @param messages History of messages
+ * @param model Which model to use
+ * @returns Response message
+ */
 export async function sendMessage(
 	message: string,
-	messages: ChatCompletionRequestMessage[]
+	messages: ChatCompletionRequestMessage[],
+	model: string
 ) {
 	try {
-		//messages.push({ role: "user", content: prompt + message });
+		
+		// Add the user's message to the history
 		messages.push({ role: "user", content: message });
 
+		// Send the message to the OpenAI API
 		const completion = await openai.createChatCompletion({
-			model: "gpt-3.5-turbo",
+			model: models[model],
 			messages,
 			max_tokens: 256,
-			temperature: 0.5,
+			temperature: 0,
 		});
 
+		// Get the response message
 		const responseMessage = completion.data.choices[0].message;
 
 		return responseMessage;

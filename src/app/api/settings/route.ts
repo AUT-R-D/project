@@ -1,6 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
+/* Fetch settings from database */
 export async function GET() {
 	const client = await clientPromise;
 	const db = client.db("info-flow");
@@ -17,6 +18,7 @@ export async function GET() {
 	return NextResponse.json({ ...settings });
 }
 
+/* Save settings to database */
 export async function POST(request: NextRequest) {
 	const res = await request.json();
 

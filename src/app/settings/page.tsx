@@ -9,43 +9,81 @@ type Settings = {
 	chatbot: string;
 	scenario: string;
 	slang: number;
-	variables: Variable[];
+	variables: {
+		[scenario: string]: Variable[];
+		phone: Variable[];
+		plane: Variable[];
+		glasses: Variable[];
+	};
 };
 
 export default function Home() {
 	const router = useRouter();
-	const [variables, setVariables] = useState(Array<Variable>()); // setting array of variables as state
-	const [scenario, setScenario] = useState("plane"); // setting scenario as state
-	const [chatbot, setChatbot] = useState("chat-gpt"); // setting chatbot as state
-	const [slang, setSlang] = useState(5); // setting slang as state
-	const [saved, setSaved] = useState(true); // setting saved as state
+	const [variables, setVariables] = useState<Settings["variables"]>({
+		phone: Array<Variable>(),
+		plane: Array<Variable>(),
+		glasses: Array<Variable>(),
+	}); // setting array of variables as state
+	const [scenario, setScenario] = useState("plane"); // scenario setting
+	const [chatbot, setChatbot] = useState("gpt-4"); // chatbot setting
+	const [chatbotChanged, setChatbotChanged] = useState<{
+		old: string;
+		new: null | string;
+	}>({ old: chatbot, new: null }); // Check for if the chat bot has been changed
+	const [slang, setSlang] = useState(5); // slang setting
+	const [saved, setSaved] = useState(true); // saved setting
 
 	function addPlus() {
 		if (saved) setSaved(false);
-		const newVariableName = (
-			document.getElementById("variableName") as HTMLInputElement
-		).value;
+		const input = document.getElementById(
+			"variableName"
+		) as HTMLInputElement;
 
-		const newVariable = new Variable(newVariableName, "");
+		if (input.value == "") return;
 
-		setVariables([...variables, newVariable]);
+		// Create new variable and add to the array for the scenario
+		const newVariable = new Variable(input.value, "");
+		setVariables((prev) => {
+			const updated = { ...prev };
+			updated[scenario].push(newVariable);
+			return updated;
+		});
+		input.value = "";
 	}
 
+	// Remove variable from array
 	function removeVariable(index: number) {
 		if (saved) setSaved(false);
-		const newVariables = [...variables];
-		newVariables.splice(index, 1);
-		setVariables(newVariables);
+		setVariables((prev) => {
+			const updated = { ...prev };
+			updated[scenario].splice(index, 1);
+			return updated;
+		});
 	}
 
+	// Update variable value
 	function updateVariableValue(
 		index: number,
 		event: ChangeEvent<HTMLInputElement>
 	) {
 		if (saved) setSaved(false);
-		const newVariables = [...variables];
-		newVariables[index].setValue(event.target.value);
-		setVariables(newVariables);
+
+		setVariables((prev) => {
+			const updated = { ...prev };
+			updated[scenario][index].setValue(event.target.value);
+			return updated;
+		});
+	}
+
+	// Save chatbot setting and remove conversationID from local storage
+	function saveChatbot() {
+		if (
+			chatbotChanged.new != null &&
+			chatbotChanged.new != chatbotChanged.old
+		) {
+			localStorage.removeItem("conversationID");
+			setChatbotChanged({ old: chatbot, new: null });
+		}
 	}
 
 	// Get initial messages
@@ -57,6 +95,7 @@ export default function Home() {
 
 			const data = await response.json();
 
+			// If there is an error, create new settings
 			if (data.error) {
 				const settings: Settings = {
 					chatbot,
@@ -73,27 +112,41 @@ export default function Home() {
 
 			const settings: Settings = data;
 
-			const newVariables = Array<Variable>();
+			const newVariables: Settings["variables"] = {
+				phone: Array<Variable>(),
+				plane: Array<Variable>(),
+				glasses: Array<Variable>(),
+			};
 
-			for (const variable of settings.variables || []) {
-				const newVariable = new Variable(variable.name, variable.value);
-				newVariables.push(newVariable);
+			// Add variables to each scenario
+			for (const scenario in settings.variables) {
+				for (const variable of settings.variables[scenario]) {
+					const newVariable = new Variable(
+						variable.name,
+						variable.value
+					);
+					newVariables[scenario].push(newVariable);
+				}
 			}
 
+			// Set settings in state
 			setScenario(settings.scenario);
 			setChatbot(settings.chatbot);
 			setVariables(newVariables);
+			setSlang(settings.slang);
+			setChatbotChanged({ old: settings.chatbot, new: null });
 		};
 
 		getVariables();
-	}, []);
+	});
 
 	return (
-		<div className="h-full bg-gray-500 bg-opacity-50 flex items-center justify-center">
+		<div className="flex items-center justify-center">
 			<div className="w-1/3 bg-white p-8 rounded-3xl shadow-md text-center justify-center">
 				<h2 className="text-xl text-black font-bold mb-4">Settings</h2>
 
 				<div className="flex space-x-2 justify-center">
+					{/* Scenario select */}
 					<select
 						className="rounded-lg p-2"
 						value={scenario}
@@ -106,21 +159,25 @@ export default function Home() {
 						<option value="plane">Plane</option>
 						<option value="glasses">Glasses</option>
 					</select>
+					{/* Chatbot select */}
 					<select
 						className="rounded-lg p-2"
 						value={chatbot}
 						onChange={(event) => {
 							setSaved(false);
 							setChatbot(event.target.value);
+							setChatbotChanged({
+								old: chatbotChanged.old,
+								new: event.target.value,
+							});
 						}}
 					>
-						<option value="chat-gpt">Chat GTP</option>
-						<option value="dialog">Dialog Flow</option>
-						<option value="wit">Wit.ai</option>
-						<option value="lex">Amazon Lex</option>
+						<option value="gpt-3.5">Chat GTP 3.5</option>
+						<option value="gpt-4">Chat GTP 4</option>
 					</select>
 				</div>
 				<div>
+					{/* Slang Input */}
 					<label className="block text-gray-700 font-bold text-lg pt-3">
 						Slang
 					</label>
@@ -150,10 +207,12 @@ export default function Home() {
 					/>
 				</div>
 
-				{variables.map((variable, index) => {
+				{/* Variables */}
+				{variables[scenario].map((variable, index) => {
 					return (
 						<div id={`var-${index}`} className="pt-3" key={index}>
 							<div className="flex flex-row justify-center items-center space-x-1 mb-2">
+								{/* Variable Name */}
 								<label
 									htmlFor={`input-${index}`}
 									className="block text-gray-700 font-bold text-lg"
@@ -161,6 +220,7 @@ export default function Home() {
 								>
 									{variable.getName()}
 								</label>
+								{/* Remove variable button */}
 								<button
 									className="flex w-5 h-5 rounded bg-black items-center"
 									id={`remove-${index}`}
@@ -176,6 +236,7 @@ export default function Home() {
 								</button>
 							</div>
 
+							{/* Variable Value */}
 							<input
 								id={`input-${index}`}
 								type="text"
@@ -189,6 +250,7 @@ export default function Home() {
 					);
 				})}
 
+				{/* Add variable */}
 				<div className="mt-5">
 					<p className="text-black font-semibold text-lg">
 						Create new variable
@@ -213,10 +275,20 @@ export default function Home() {
 						</button>
 					</div>
 				</div>
+				
+				{/* Warning about changing chatbot */}
+				{chatbotChanged.new != null &&
+					chatbotChanged.new != chatbotChanged.old && (
+						<div className="text-black bg-red-500 p-4 mt-5 rounded-lg">
+							Changing the chatbot setting will reset the
+							conversation.
+						</div>
+					)}
 
+				{/* Save and discard buttons */}
 				<button
 					className="block mt-4 bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 disabled:hover:bg-gray-400 text-white font-bold py-2 px-4 rounded mx-auto"
-					onClick={async (event) => {
+					onClick={async () => {
 						const settings: Settings = {
 							chatbot,
 							scenario,
@@ -229,6 +301,7 @@ export default function Home() {
 							body: JSON.stringify(settings),
 						});
 						setSaved(true);
+						saveChatbot();
 					}}
 					disabled={saved}
 				>

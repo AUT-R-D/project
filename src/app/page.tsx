@@ -5,24 +5,40 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 const { uuid } = require("uuidv4");
 import { useEffect, useRef, useState } from "react";
+import { Variable } from "@/types/variable";
+
+type Settings = {
+	chatbot: string;
+	scenario: string;
+	slang: number;
+	variables: {
+		[scenario: string]: Variable[];
+		phone: Variable[];
+		plane: Variable[];
+		glasses: Variable[];
+	};
+};
 
 export default function Home() {
 	const [conversationID, setConversationID] = useState<string>("");
 
-	const bottomRef = useRef<null | HTMLDivElement>(null);
+	const bottomRef = useRef<null | HTMLDivElement>(null); // Reference to the bottom of the chat
 
-	const [inputText, setInputText] = useState("");
+	const [inputText, setInputText] = useState(""); // Input text
 
-	const [messages, setMessages] = useState<Message[]>([]);
+	const [messages, setMessages] = useState<Message[]>([]); // Messages
 
-	const [isLoading, setIsLoading] = useState(false);
+	const [isLoading, setIsLoading] = useState(false); // Loading state
 
-	// Chat Box code
+	const [chatbot, setChatbot] = useState<string>(""); // Chatbot model
+
+	// ### Chat Box code ###
 
 	// Get initial messages
 	const getMessages = async (conversation_id: string) => {
 		const pastMessages = Array<Message>();
 		try {
+			// Get past messages from database
 			const response = await fetch("/api/conversations", {
 				method: "POST",
 				body: JSON.stringify({ conversation_id }),
@@ -31,8 +47,10 @@ export default function Home() {
 				},
 			});
 
+			// Parse response
 			const data = await response.json();
 
+			// Throw error if response is not ok
 			if (!response.ok) {
 				if (data.error) {
 					throw new Error(data.error);
@@ -58,14 +76,36 @@ export default function Home() {
 			}
 			pastMessages.push(message);
 		}
+
+		// Return the messages
 		return pastMessages;
+	};
+
+	// assigns variable name to prompt example
+	const assignPrompt = function (element: string, name: String) {
+		const promptDiv = document.getElementById(element);
+
+		if (promptDiv) {
+			let pTag = promptDiv.querySelector("p")!;
+			if (pTag) {
+				let text = pTag.textContent;
+
+				if (text === "") {
+					promptDiv.querySelector("p")!.textContent =
+						"What is my " + name + "?";
+				}
+			}
+		}
 	};
 
 	// Handle form submission
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
+
+		// Prevent submission if loading
 		if (isLoading) return;
 
+		// Set loading state and clear input
 		setIsLoading(true);
 		setInputText("");
 
@@ -89,6 +129,7 @@ export default function Home() {
 						};
 					}),
 					conversation_id: conversationID,
+					model: chatbot,
 				}),
 				headers: {
 					"Content-Type": "application/json",
@@ -135,11 +176,20 @@ export default function Home() {
 			event.target.scrollHeight > 200 ? "scroll" : "hidden";
 	};
 
-	const resetConversation = () => {
+	// Resets the conversation
+	const resetConversation = async () => {
+		setInputText("");
+		// Generate new ID
 		const newID = uuid();
+		// Set the new ID
 		localStorage.setItem("conversationID", newID);
 		setConversationID(newID);
-		setMessages([]);
+		// Get the system message
+		const systemMessageRes = await fetch("/api/system-message");
+		const systemMessageJSON = await systemMessageRes.json();
+		const systemMessage = new Message("system", systemMessageJSON.prompt);
+
+		setMessages([systemMessage]);
 	};
 
 	// Get initial messages
@@ -150,6 +200,7 @@ export default function Home() {
 			id = uuid();
 			localStorage.setItem("conversationID", id!);
 		}
+		// set conversationID
 		setConversationID(id!);
 		const getInitialMessages = async () => {
 			const pastMessages = await getMessages(id!);
@@ -158,17 +209,62 @@ export default function Home() {
 				const newID = uuid();
 				localStorage.setItem("conversationID", newID);
 				setConversationID(newID);
+				const systemMessageRes = await fetch("/api/system-message");
+				const systemMessageJSON = await systemMessageRes.json();
+				const systemMessage = new Message(
+					"system",
+					systemMessageJSON.prompt
+				);
+
+				pastMessages.push(systemMessage);
 			}
 			setMessages(pastMessages);
 		};
 		getInitialMessages();
-	}, []);
+
+		// get settings variables...
+		const getVariables = async () => {
+			const response = await fetch("/api/settings", {
+				method: "GET",
+			});
+
+			const data = await response.json();
+
+			const settings: Settings = data;
+
+			setChatbot(settings.chatbot);
+
+			const settingsVariables = Array<Variable>();
+
+			// add variables to settingsVariables
+			for (const variable of settings.variables[settings.scenario] ||
+				[]) {
+				const newVariable = new Variable(variable.name, variable.value);
+				settingsVariables.push(newVariable);
+			}
+
+			// set settings variables to prompt examples
+			let counter = 0;
+			for (const variable of settingsVariables || []) {
+				counter++;
+				let divId = "eg" + String(counter);
+				assignPrompt(divId, variable.getName());
+			}
+
+			// if there are less than 3 variables, assign the rest to "..."
+			while (counter != 3) {
+				counter++;
+				let divId = "eg" + String(counter);
+				assignPrompt(divId, "...");
+			}
+		};
+		getVariables();
+	}, []); // Empty dependency array means this code runs once after rendering.
 
 	// Scroll to bottom of chat box
 	useEffect(() => {
-		// 👇️ scroll to bottom every time messages change
-		if (bottomRef.current === null) {
-		} else {
+		// scroll to bottom every time messages change
+		if (bottomRef.current !== null) {
 			bottomRef.current.scrollIntoView({
 				behavior: "smooth",
 			});
@@ -181,6 +277,9 @@ export default function Home() {
 				<div className="overflow-y-auto h-full w-full">
 					<div className="h-full dark:bg-gray-800">
 						<div className="flex flex-col items-center text-sm dark:bg-gray-800">
+							{
+								// Below is the frame where all messages are displayed for the user
+							}
 							<div className="w-full">
 								<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 dark:bg-gray-800">
 									<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
@@ -201,13 +300,17 @@ export default function Home() {
 											className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 dark:bg-gray-800"
 										>
 											{message.getSender() == "user" ? (
-												<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
-													<div>
-														You:{" "}
-														{message.getMessage()}
+												<>
+													{/* If message is seny by user display the following */}
+													<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
+														<div>
+															You:{" "}
+															{message.getMessage()}
+														</div>
 													</div>
-												</div>
+												</>
 											) : (
+												/* Otherwise it's a bot message or error message*/
 												<div className="group w-full text-gray-800 dark:text-gray-100 border-b border-black/10 dark:border-gray-900/50 bg-gray-50 dark:bg-[#444654]">
 													<div className="text-base gap-4 md:gap-6 md:max-w-2xl lg:max-w-xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0 m-auto">
 														{isLoading &&
@@ -215,11 +318,13 @@ export default function Home() {
 															null &&
 														message.getError() ==
 															false ? (
+															/* Display loading state */
 															<div className="loading">
 																Loading
 															</div>
 														) : message.getError() !=
 														  false ? (
+															/* Display Error */
 															<div
 																style={{
 																	color: "red",
@@ -229,6 +334,7 @@ export default function Home() {
 																{message.getError()}
 															</div>
 														) : (
+															/* Display bot's response */
 															<div>
 																Bot:{" "}
 																{message.getMessage()}
@@ -240,6 +346,7 @@ export default function Home() {
 										</div>
 									</div>
 								))}
+							{/* Used for scrolling to the bottom of the chat when sending a message */}
 							<div
 								className="w-full h-24 md:h-32 flex-shrink-0"
 								ref={bottomRef}
@@ -250,17 +357,72 @@ export default function Home() {
 			</div>
 
 			<div className="absolute bottom-0 left-0 w-full bg-white dark:bg-gray-800 pt-4">
+				{
+					// Below are the 3 prompt suggestion boxes for the user
+				}
+				{messages.length < 2 && (
+					<div
+						id="promptEgs"
+						className="bg-grey-800 grid grid-cols-3 mx-28 gap-x-3"
+					>
+						<div
+							id="eg1"
+							className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out"
+						>
+							<p
+								className="text-slate-300"
+								onClick={(event) => {
+									setInputText(
+										event.currentTarget.textContent!
+									);
+								}}
+							></p>
+						</div>
+						<div
+							id="eg2"
+							className="bg-gray-600 p-8 h-36 mx-2 mb-8 rounded-lg col-span-1 hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out"
+						>
+							<p
+								className="text-slate-300"
+								onClick={(event) => {
+									setInputText(
+										event.currentTarget.textContent!
+									);
+								}}
+							></p>
+						</div>
+						<div
+							id="eg3"
+							className="bg-gray-600 p-8 h-36 mx-2 mb-8 row-span-3 col-span-1 rounded-lg hover:bg-[#335985] focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-250 ease-in-out"
+						>
+							<p
+								className="text-slate-300"
+								onClick={(event) => {
+									setInputText(
+										event.currentTarget.textContent!
+									);
+								}}
+							></p>
+						</div>
+					</div>
+				)}
+
+				{
+					// Below is the submit form and input bar for the user
+				}
 				<form
 					onSubmit={handleSubmit}
 					className="stretch mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl"
 				>
 					<div className="relative flex h-full flex-1 md:flex-row">
+						{/* Settings Button */}
 						<Link
 							href={"/settings"}
 							className="md:py-3 md:px-4 mr-2 rounded-md bg-slate-600 hover:bg-slate-400"
 						>
 							<FontAwesomeIcon icon={faGear} />
 						</Link>
+						{/* Input Area */}
 						<div className="flex flex-col w-full py-2 flex-grow md:py-3 md:pl-4 relative text-white bg-gray-700 rounded-md shadow-[0_0_15px_rgba(0,0,0,0.10)]">
 							<textarea
 								disabled={isLoading}
@@ -277,6 +439,7 @@ export default function Home() {
 								}}
 								className="m-0 w-full resize-none bg-transparent outline-none p-0 pr-7 dark:bg-transparent pl-2 md:pl-0"
 							/>
+							{/* Submit Button */}
 							<button
 								type="submit"
 								disabled={isLoading || inputText.length == 0}
@@ -286,6 +449,7 @@ export default function Home() {
 								Submit
 							</button>
 						</div>
+						{/* Reset Button */}
 						<button
 							type="reset"
 							onClick={resetConversation}

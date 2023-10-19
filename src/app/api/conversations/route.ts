@@ -1,6 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
+/* Fetch conversations from database */
 export async function POST(request: NextRequest) {
 	const res = await request.json();
 
